@@ -4,15 +4,6 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-/* Specify the different types of cells
- * EMPTY_TOP is the top cell in an empty vertical pair
- * EMPTY_LEFT is the left cell in an empty horizontal pair
- * MAGNET_TOP_P is the positive top cell in a vertical magnet
- * MAGNET_LEFT_P is the positive top cell in a horizontal magnet
- * MAGNET_TOP_N is the negative top cell in a vertical magnet
- * MAGNET_LEFT_N is the negative top cell in a horizontal magnet
- * PASS is a cell that must no me drawn uppon
- */
 typedef enum
 {
     EMPTY_TOP,
@@ -22,7 +13,6 @@ typedef enum
     MAGNET_TOP_N,
     MAGNET_LEFT_N
 } CellType;
-
 
 void replace_char(char* string, size_t string_size, char out_char, char in_char);
 
@@ -63,7 +53,7 @@ void watcher_load_layout(char* filename)
 	/* Leemos los numeros de las orillas de la izquierda y la derecha y los ponemos en la interfaz*/
 	for (int side = 2; side < 4; side++)
 	{
-		for (int row = 0; row < width; row++)
+		for (int row = 0; row < height; row++)
 		{
 			int val;
 			fscanf(test_file, "%d ", &val);
