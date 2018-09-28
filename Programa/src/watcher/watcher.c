@@ -20,6 +20,21 @@ void replace_char(char* string, size_t string_size, char out_char, char in_char)
 
 static FILE* watcher = NULL;
 
+void watcher_set_number(int side, int pos, int value)
+{
+  if (watcher)
+  {
+    if (fprintf(watcher, "NUMBER %d %d %d\n", side, pos, value) < 0)
+    {
+      watcher_close();
+    }
+    else
+    {
+      fflush(watcher);
+    }
+  }
+}
+
 /** Carga el archivo a la pantalla */
 void watcher_load_layout(char* filename)
 {
@@ -123,21 +138,6 @@ void watcher_set_magnet(int row, int col, bool vertical, bool positive)
 			fflush(watcher);
 		}
 	}
-}
-
-void watcher_set_number(int side, int pos, int value)
-{
-  if (watcher)
-  {
-    if (fprintf(watcher, "NUMBER %d %d %d\n", side, pos, value) < 0)
-    {
-      watcher_close();
-    }
-    else
-    {
-      fflush(watcher);
-    }
-  }
 }
 
 /** Cierra el watcher */

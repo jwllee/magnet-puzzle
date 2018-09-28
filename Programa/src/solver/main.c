@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
 
 	//////////// Ejemplos de como dibujar en la interfaz //////////////
 
-	// Estos ejemplos son para el tablero del test_00.txt y son para mostrar el
+	// Estos ejemplos son para el tablero del test_01.txt y son para mostrar el
 	// funcionamiento de la interfaz. Puedes experimentar con los ejemplos y luego
 	// borrarlos de tu programa
 

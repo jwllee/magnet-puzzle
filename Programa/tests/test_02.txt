@@ -1,0 +1,11 @@
+5 6
+0 1 0 2 0
+1 0 0 1 0
+0 1 0 2 2 0
+0 2 0 0 1 0
+L R T L R
+L R B T T
+T T T B B
+B B B L R
+L R L R T
+L R L R B
