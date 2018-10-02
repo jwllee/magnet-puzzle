@@ -6,26 +6,32 @@
 
 #include <stdbool.h>
 
-typedef struct magnet Magnet;
+typedef struct cell Cell;
 typedef struct puzzle Puzzle;
 
 typedef enum
 {
-    UNASSIGNED = -1,
     EMPTY = 0,
     POSITIVE = 1,
     NEGATIVE = 2
-} CellValue;
+} PCellValue;
 
-struct magnet
+
+typedef enum
 {
-    int x0, y0;
-    int x1, y1;
-    // if priority == -1, then it means that the value is not a valid one
+    TOP = 'T',
+    BOTTOM = 'B',
+    LEFT = 'L',
+    RIGHT = 'R'
+} PCellType;
+
+
+struct cell
+{
+    PCellType type;
+    PCellValue value;
+    // if priority == 0, then it means that the value is not a valid one
     // there are 3 possible values:
-    // - empty: 0
-    // - positive: 1
-    // - negative: 2
     int valuePriority[3];
 };
 
@@ -35,32 +41,30 @@ struct puzzle
     int *constraint_row_p, *constraint_col_p;
     int *constraint_row_n, *constraint_col_n;
 
-    // board containing values
-    // - empty: 0
-    // - positive: 1
-    // - negative: 2
+    int *row_p, *col_p;
+    int *row_n, *col_n;
+
     int r, c;
-    int **board;
+    Cell ***board;
     int *row_counter;
     int *col_counter;
-
-    Magnet *magnets;
-    bool *magnet_assigned;
 };
 
+PCellType char_to_type(char c);
+char type_to_char(PCellType t);
+Cell * cell_init(PCellType t);
+Puzzle * puzzle_init(int r, int c, char **b, int *row_p, int *row_n, int *col_p, int *col_n);
 
-Magnet * magnet_init(int x0, int y0, int x1, int y1);
-Puzzle * puzzle_init(int r, int c);
-
-void magnet_destroy(Magnet *m);
 void puzzle_destroy(Puzzle *p);
 
-void assign_magnet(Puzzle *p, Magnet *m, CellValue v);
-void unassign_magnet(Puzzle *p, Magnet *m);
+void assign_cell(Puzzle *p, Cell *c, PCellValue v);
+void unassign_cell(Puzzle *p, Cell *c);
 
-bool is_consistent(Puzzle *p, Magnet *m, CellValue v);
+bool is_consistent(Puzzle *p, Cell *c, PCellValue v);
 
 bool backtrack(Puzzle *p);
 
-void assert_puzzle(Puzzle *p);
+bool is_fulfilled(Puzzle *p, bool print);
+bool assert_puzzle(Puzzle *p);
 void draw_puzzle(Puzzle *p);
+void print_puzzle(Puzzle *p);
