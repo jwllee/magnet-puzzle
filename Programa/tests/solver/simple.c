@@ -68,6 +68,9 @@ int main(int argc, char *argv[])
    assign_cell(puzzle, puzzle->board[0][0], POSITIVE);
    print_puzzle(puzzle);
 
+   unassign_cell(puzzle, puzzle->board[0][0]);
+   print_puzzle(puzzle);
+
    if (assert_puzzle(puzzle))
        printf("\nPuzzle fulfilled: true\n");
    else
