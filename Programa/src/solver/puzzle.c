@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "puzzle.h"
+#include "utils.h"
 #include "../watcher/watcher.h"
 #include <unistd.h>
 
@@ -62,6 +63,8 @@ Puzzle * puzzle_init(int r, int c, char **b, int *p[4], bool slow)
             }
         }
     }
+
+    sort_cells(puzzle->cells, 0, r * c / 2, false);
 
     // safety check about the number of magnets
     if (cnt != r * c / 2)
