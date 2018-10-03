@@ -1,1 +1,1 @@
-add_library(Solver solver.c)
+add_library(Solver puzzle.c)

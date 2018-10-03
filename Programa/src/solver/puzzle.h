@@ -42,7 +42,7 @@ struct puzzle
     int *constraints[4];
 
     // row (+, -), col (+, -)
-    int *polarity[4];
+    int *charge[4];
 
     int r, c;
     Cell ***board;
