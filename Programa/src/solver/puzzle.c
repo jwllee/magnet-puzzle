@@ -351,27 +351,7 @@ bool is_fulfilled(int c, int v)
 
 bool is_done(Puzzle *p)
 {
-    bool done = true;
-
-    for (int i = 0; i < p->r; ++i)
-    {
-        done = done && is_fulfilled(p->constraints[0][i], p->charge[0][i]);
-        done = done && is_fulfilled(p->constraints[1][i], p->charge[1][i]);
-
-        if (!done)
-            break;
-    }
-
-    for (int i = 0; i < p->c; ++i)
-    {
-        done = done && is_fulfilled(p->constraints[2][i], p->charge[2][i]);
-        done = done && is_fulfilled(p->constraints[3][i], p->charge[3][i]);
-
-        if (!done)
-            break;
-    }
-
-    return false;
+    return p->heap->heapsize == 0;
 }
 
 
