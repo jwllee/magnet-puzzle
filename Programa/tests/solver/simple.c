@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
    Puzzle *puzzle = puzzle_init(r, c, board, constraints);
    print_puzzle(puzzle);
 
-   if (is_fulfilled(puzzle, false))
+   if (assert_puzzle(puzzle))
        printf("\nPuzzle fulfilled: true\n");
    else
        printf("\nPuzzle fulfilled: false\n");
