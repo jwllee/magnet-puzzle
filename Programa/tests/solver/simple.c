@@ -27,23 +27,24 @@ int main(int argc, char *argv[])
    fscanf(data, "%d %d", &c, &r);
 
    // read constraints
-   int *row_p = malloc(r * sizeof(int));
-   int *row_n = malloc(r * sizeof(int));
-   int *col_p = malloc(c * sizeof(int));
-   int *col_n = malloc(c * sizeof(int));
+   int *constraints[4];
+   constraints[0] = malloc(r * sizeof(int));
+   constraints[1] = malloc(r * sizeof(int));
+   constraints[2] = malloc(c * sizeof(int));
+   constraints[3] = malloc(c * sizeof(int));
 
    // read column constraints
    // positive then negative
    for (int i = 0; i < c; ++i)
-       fscanf(data, " %d ", &col_p[i]);
+       fscanf(data, " %d ", &constraints[2][i]);
    for (int i = 0; i < c; ++i)
-       fscanf(data, " %d ", &col_n[i]);
+       fscanf(data, " %d ", &constraints[3][i]);
 
    // row constraints
    for (int i = 0; i < r; ++i)
-       fscanf(data, " %d ", &row_p[i]);
+       fscanf(data, " %d ", &constraints[0][i]);
    for (int i = 0; i < r; ++i)
-       fscanf(data, " %d ", &row_n[i]);
+       fscanf(data, " %d ", &constraints[1][i]);
 
    // read the board
    char **board = malloc(r * sizeof(char *));
@@ -61,7 +62,7 @@ int main(int argc, char *argv[])
        // printf("row %d: %s\n", i, board[i]);
    }
 
-   Puzzle *puzzle = puzzle_init(r, c, board, row_p, row_n, col_p, col_n);
+   Puzzle *puzzle = puzzle_init(r, c, board, constraints);
    print_puzzle(puzzle);
 
    if (is_fulfilled(puzzle, false))
@@ -75,10 +76,10 @@ int main(int argc, char *argv[])
    for (int i = 0; i < r; ++i)
         free(board[i]);
    free(board);
-   free(row_p);
-   free(row_n);
-   free(col_p);
-   free(col_n);
+   for (int i = 0; i < 4; ++i)
+   {
+       free(constraints[i]);
+   }
    fclose(data);
 
    return 0;
