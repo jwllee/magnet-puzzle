@@ -317,7 +317,6 @@ void unassign_cell(Puzzle *p, Cell *k)
 
         p->charge[1][m] -= 1;
         p->charge[3][n] -= 1;
-        p->board[m][n]->value = NEGATIVE;
     }
     else if (k->value == NEGATIVE)
     {
@@ -326,10 +325,10 @@ void unassign_cell(Puzzle *p, Cell *k)
 
         p->charge[0][m] -= 1;
         p->charge[2][n] -= 1;
-        p->board[m][n]->value = POSITIVE;
     }
 
     k->value = EMPTY;
+    p->board[m][n]->value = EMPTY;
 }
 
 
