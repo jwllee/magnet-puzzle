@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
        // printf("row %d: %s\n", i, board[i]);
    }
 
-   Puzzle *puzzle = puzzle_init(r, c, board, constraints);
+   Puzzle *puzzle = puzzle_init(r, c, board, constraints, false);
    // assign_cell(puzzle, puzzle->board[0][0], POSITIVE);
    // assign_cell(puzzle, puzzle->board[1][0], NEGATIVE);
    // assign_cell(puzzle, puzzle->board[0][2], POSITIVE);
@@ -75,6 +75,7 @@ int main(int argc, char *argv[])
 
    printf("Solving puzzle...\n");
    backtrack(puzzle);
+   print_puzzle(puzzle);
 
    if (assert_puzzle(puzzle))
        printf("\nPuzzle fulfilled: true\n");
