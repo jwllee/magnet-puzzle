@@ -50,21 +50,19 @@ struct puzzle
     int *counter[2];
 };
 
-PCellType char_to_type(char c);
-char type_to_char(PCellType t);
 Cell * cell_init(PCellType t);
 Puzzle * puzzle_init(int r, int c, char **b, int *p[4]);
 
 void puzzle_destroy(Puzzle *p);
 
-void assign_cell(Puzzle *p, Cell *c, PCellValue v);
-void unassign_cell(Puzzle *p, Cell *c);
+void assign_cell(Puzzle *p, int r, int c, Cell *k, PCellValue v);
+void unassign_cell(Puzzle *p, int r, int c, Cell *k);
 
 bool is_consistent(Puzzle *p, Cell *c, PCellValue v);
 
+bool is_done(Puzzle *p);
 bool backtrack(Puzzle *p);
 
-bool is_fulfilled(Puzzle *p, bool print);
 bool assert_puzzle(Puzzle *p);
 void draw_puzzle(Puzzle *p);
 void print_puzzle(Puzzle *p);

@@ -122,15 +122,44 @@ void puzzle_destroy(Puzzle *p)
 }
 
 
-void assign_cell(Puzzle *p, Cell *c, PCellValue v)
+void assign_cell(Puzzle *p, int r, int c, Cell *k, PCellValue v)
 {
+    k->value = v;
 
+    // update the corresponding charge and counter
+    p->counter[r] += 1;
+    p->counter[c] += 1;
+
+    if (k->value == POSITIVE)
+    {
+        p->charge[0][r] += 1;
+        p->charge[2][c] += 1;
+    }
+    else if (k->value == NEGATIVE)
+    {
+        p->charge[1][r] += 1;
+        p->charge[3][c] += 1;
+    }
 }
 
 
-void unassign_cell(Puzzle *p, Cell *c)
+void unassign_cell(Puzzle *p, int r, int c, Cell *k)
 {
+    p->counter[r] -= 1;
+    p->counter[c] -= 1;
 
+    if (k->value == POSITIVE)
+    {
+        p->charge[0][r] -= 1;
+        p->charge[2][c] -= 1;
+    }
+    else if (k->value == NEGATIVE)
+    {
+        p->charge[1][r] -= 1;
+        p->charge[3][c] -= 1;
+    }
+
+    k->value = EMPTY;
 }
 
 
@@ -140,9 +169,48 @@ bool is_consistent(Puzzle *p, Cell *c, PCellValue v)
 }
 
 
+bool is_fulfilled(int c, int v)
+{
+    // fulfilled if there is no constraint or if constraint equals value
+    if (c == 0 || (c > 0 && c == v))
+        return true;
+    else
+        return false;
+}
+
+
+bool is_done(Puzzle *p)
+{
+    bool done = true;
+
+    for (int i = 0; i < p->r; ++i)
+    {
+        done = done && is_fulfilled(p->constraints[0][i], p->charge[0][i]);
+        done = done && is_fulfilled(p->constraints[1][i], p->charge[1][i]);
+
+        if (!done)
+            break;
+    }
+
+    for (int i = 0; i < p->c; ++i)
+    {
+        done = done && is_fulfilled(p->constraints[2][i], p->charge[2][i]);
+        done = done && is_fulfilled(p->constraints[3][i], p->charge[3][i]);
+
+        if (!done)
+            break;
+    }
+
+    return false;
+}
+
+
 bool backtrack(Puzzle *p)
 {
-    return false;
+    if (is_done(p))
+        return true;
+
+    return true;
 }
 
 
@@ -156,29 +224,18 @@ bool is_violating(int c, int v)
 }
 
 
-bool is_fulfilled_single(int c, int v)
+bool assert_puzzle(Puzzle *p)
 {
-    // fulfilled if there is no constraint or if constraint equals value
-    if (c == 0 || (c > 0 && c == v))
-        return true;
-    else
-        return false;
-}
-
-
-bool is_fulfilled(Puzzle *p, bool print)
-{
-    int rowFulfilled = 0;
-    int colFulfilled = 0;
+    bool done = true;
 
     for (int i = 0; i < 2; ++i)
     {
         for (int j = 0; j < p->r; ++j)
         {
-            if (is_violating(p->constraints[i][j], p->charge[i][j]) && print)
+            if (is_violating(p->constraints[i][j], p->charge[i][j]))
                 printf("Row %d violation: %d < %d\n", j, p->constraints[i][j], p->charge[i][j]);
-            else if (is_fulfilled_single(p->constraints[i][j], p->charge[i][j]))
-                rowFulfilled += 1;
+            else
+                done = done && is_fulfilled(p->constraints[i][j], p->charge[i][j]);
         }
     }
 
@@ -186,21 +243,14 @@ bool is_fulfilled(Puzzle *p, bool print)
     {
         for (int j = 0; j < p->c; ++j)
         {
-            if (is_violating(p->constraints[i][j], p->charge[i][j] && print))
+            if (is_violating(p->constraints[i][j], p->charge[i][j]))
                 printf("Col %d violation: %d < %d\n", i, p->constraints[i][j], p->charge[i][j]);
-            else if (is_fulfilled_single(p->constraints[i][j], p->charge[i][j]))
-                colFulfilled += 1;
+            else
+                done = done && is_fulfilled(p->constraints[i][j], p->charge[i][j]);
         }
     }
 
-    bool fulfilled = rowFulfilled / 2 == p->r && colFulfilled / 2 == p->c;
-    return fulfilled;
-}
-
-
-bool assert_puzzle(Puzzle *p)
-{
-    return is_fulfilled(p, true);
+    return done;
 }
 
 
