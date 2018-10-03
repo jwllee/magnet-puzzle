@@ -22,6 +22,16 @@ Cell * cell_init(PCellType t)
 }
 
 
+Heap * heap_init(int n)
+{
+    Heap * heap = malloc(sizeof(Heap));
+    heap->size = n;
+    heap->heapsize = 0;
+    heap->cells = malloc(n * sizeof(Cell *));
+    return heap;
+}
+
+
 Puzzle * puzzle_init(int r, int c, char **b, int *p[4])
 {
     Puzzle * puzzle = malloc(sizeof(Puzzle));
@@ -30,7 +40,6 @@ Puzzle * puzzle_init(int r, int c, char **b, int *p[4])
 
     // r rows where each row has c components
     puzzle->board = malloc(r * sizeof(Cell *));
-
     for (int i = 0; i < r; ++i)
     {
         puzzle->board[i] = malloc(c * sizeof(Cell));
@@ -95,6 +104,21 @@ void cell_destroy(Cell *c)
 }
 
 
+void heap_destroy(Heap *h, bool d)
+{
+    // only destroy content cells if necessary
+    if (d)
+    {
+        for (int i = 0; i < h->heapsize; ++i)
+        {
+            cell_destroy(h->cells[i]);
+        }
+    }
+    free(h->cells);
+    free(h);
+}
+
+
 void puzzle_destroy(Puzzle *p)
 {
     // free the constraints, charge counts, and counters
@@ -118,7 +142,91 @@ void puzzle_destroy(Puzzle *p)
         free(p->board[i]);
     }
     free(p->board);
+
+    // free heap
+    heap_destroy(p->heap, false);
+
     free(p);
+}
+
+
+Cell * heap_max(Heap *h)
+{
+    return h->cells[0];
+}
+
+
+void heap_exch(Heap *h, int i, int j)
+{
+    if (i == j)
+        return;
+
+    Cell *tmp = h->cells[i];
+    h->cells[i] = h->cells[j];
+    h->cells[j] = tmp;
+}
+
+
+void heap_fixup(Heap *h, int i)
+{
+    int ancestor, priority = h->cells[i]->priority;
+
+    while (i > 0)
+    {
+        ancestor = i / 2;
+
+        // break if fulfilling max heap property
+        if (h->cells[ancestor]->priority >= priority)
+            break;
+
+        heap_exch(h, i, ancestor);
+        i = ancestor;
+    }
+}
+
+
+void heap_fixdown(Heap *h, int i)
+{
+    int child, priority = h->cells[i]->priority;
+
+    while (i * 2 < h->heapsize)
+    {
+        child = i * 2;
+
+        // if the right child
+        if (child < h->heapsize - 1 && h->cells[child + 1]->priority > h->cells[child]->priority)
+            child += 1;
+
+        // fulfilling max heap property because it is larger than the largest child
+        if (h->cells[child]->priority <= priority)
+            break;
+
+        heap_exch(h, i, child);
+        i = child;
+    }
+}
+
+
+Cell * heap_remove(Heap *h, int i)
+{
+    Cell * aux = h->cells[i];
+
+    // exchange with the last item and fix down
+    heap_exch(h, i, h->heapsize - 1);
+    heap_fixdown(h, i);
+
+    h->heapsize -= 1;
+
+    return aux;
+}
+
+
+void heap_max_heapify(Heap *h)
+{
+    int n = h->heapsize / 2;
+
+    for (int i = 0; i < n; ++i)
+        heap_fixdown(h, i);
 }
 
 

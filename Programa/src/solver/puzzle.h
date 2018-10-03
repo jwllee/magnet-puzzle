@@ -8,6 +8,7 @@
 
 typedef struct cell Cell;
 typedef struct puzzle Puzzle;
+typedef struct heap Heap;
 
 typedef enum
 {
@@ -28,11 +29,20 @@ typedef enum
 
 struct cell
 {
+    int i, j, priority;
     PCellType type;
     PCellValue value;
     // if priority == 0, then it means that the value is not a valid one
     // there are 3 possible values:
     int valuePriority[3];
+};
+
+
+struct heap
+{
+    Cell **cells;
+    int heapsize;
+    int size;
 };
 
 
@@ -48,12 +58,24 @@ struct puzzle
     Cell ***board;
     // row, col
     int *counter[2];
+
+    Heap *heap;
 };
 
 Cell * cell_init(PCellType t);
+Heap * heap_init(int n);
 Puzzle * puzzle_init(int r, int c, char **b, int *p[4]);
 
+void cell_destroy(Cell *c);
+void heap_destroy(Heap *h, bool d);
 void puzzle_destroy(Puzzle *p);
+
+// heap functions
+Cell * heap_max(Heap *h);
+void heap_fixup(Heap *h, int i);
+void heap_fixdown(Heap *h, int i);
+Cell * heap_remove(Heap *h, int i);
+void heap_max_heapify(Heap *h);
 
 void assign_cell(Puzzle *p, int r, int c, Cell *k, PCellValue v);
 void unassign_cell(Puzzle *p, int r, int c, Cell *k);
