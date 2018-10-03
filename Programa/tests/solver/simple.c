@@ -4,7 +4,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "../src/solver/solver.h"
+#include <unistd.h>
+#include <watcher/watcher.h>
+#include "solver/puzzle.h"
 
 
 int main(int argc, char *argv[])
@@ -69,7 +71,6 @@ int main(int argc, char *argv[])
        printf("\nPuzzle fulfilled: true\n");
    else
        printf("\nPuzzle fulfilled: false\n");
-
 
    puzzle_destroy(puzzle);
 
