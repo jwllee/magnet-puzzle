@@ -25,16 +25,6 @@ Cell * cell_init(int i, int j, PCellType t)
 }
 
 
-Heap * heap_init(int n)
-{
-    Heap * heap = malloc(sizeof(Heap));
-    heap->size = n;
-    heap->heapsize = 0;
-    heap->cells = malloc(n * sizeof(Cell *));
-    return heap;
-}
-
-
 Puzzle * puzzle_init(int r, int c, char **b, int *p[4])
 {
     Puzzle * puzzle = malloc(sizeof(Puzzle));
@@ -42,10 +32,12 @@ Puzzle * puzzle_init(int r, int c, char **b, int *p[4])
     puzzle->c = c;
 
     // r rows where each row has c components
+    puzzle->n_assigned = 0;
+    puzzle->cells = malloc((r * c / 2) * sizeof(Cell *));
     puzzle->board = malloc(r * sizeof(Cell *));
-    puzzle->heap = heap_init(r * c / 2);
 
     Cell *cell;
+    int cnt = 0;
 
     for (int i = 0; i < r; ++i)
     {
@@ -64,10 +56,16 @@ Puzzle * puzzle_init(int r, int c, char **b, int *p[4])
             // and RIGHT cells will get assigned automatically
             if (t == TOP || t == LEFT)
             {
-                puzzle->heap->cells[puzzle->heap->heapsize] = cell;
-                puzzle->heap->heapsize += 1;
+                puzzle->cells[cnt++] = cell;
             }
         }
+    }
+
+    // safety check about the number of magnets
+    if (cnt != r * c / 2)
+    {
+        printf("Number of magnets does not equal r x c / 2!\n");
+        return NULL;
     }
 
     // initiate variables
@@ -120,21 +118,6 @@ void cell_destroy(Cell *c)
 }
 
 
-void heap_destroy(Heap *h, bool d)
-{
-    // only destroy content cells if necessary
-    if (d)
-    {
-        for (int i = 0; i < h->heapsize; ++i)
-        {
-            cell_destroy(h->cells[i]);
-        }
-    }
-    free(h->cells);
-    free(h);
-}
-
-
 void puzzle_destroy(Puzzle *p)
 {
     // free the constraints, charge counts, and counters
@@ -159,104 +142,8 @@ void puzzle_destroy(Puzzle *p)
     }
     free(p->board);
 
-    // free heap
-    heap_destroy(p->heap, false);
-
+    free(p->cells);
     free(p);
-}
-
-
-Cell * heap_max(Heap *h)
-{
-    return h->cells[0];
-}
-
-
-void heap_exch(Heap *h, int i, int j)
-{
-    if (i == j)
-        return;
-
-    Cell *tmp = h->cells[i];
-    h->cells[i] = h->cells[j];
-    h->cells[j] = tmp;
-}
-
-
-void heap_fixup(Heap *h, int i)
-{
-    int ancestor, priority = h->cells[i]->priority;
-
-    while (i > 0)
-    {
-        ancestor = i / 2;
-
-        // break if fulfilling max heap property
-        if (h->cells[ancestor]->priority >= priority)
-            break;
-
-        heap_exch(h, i, ancestor);
-        i = ancestor;
-    }
-}
-
-
-void heap_fixdown(Heap *h, int i)
-{
-    int child, priority = h->cells[i]->priority;
-
-    while (i * 2 < h->heapsize)
-    {
-        child = i * 2;
-
-        // if the right child
-        if (child < h->heapsize - 1 && h->cells[child + 1]->priority > h->cells[child]->priority)
-            child += 1;
-
-        // fulfilling max heap property because it is larger than the largest child
-        if (h->cells[child]->priority <= priority)
-            break;
-
-        heap_exch(h, i, child);
-        i = child;
-    }
-}
-
-
-void heap_insert(Heap *h, Cell *c)
-{
-    if (h->size == h->heapsize)
-    {
-        printf("Heap full. Cannot add another item!\n");
-        return;
-    }
-
-    h->cells[h->heapsize] = c;
-    heap_fixup(h, h->heapsize);
-    h->heapsize += 1;
-}
-
-
-Cell * heap_remove(Heap *h, int i)
-{
-    Cell * aux = h->cells[i];
-
-    // exchange with the last item and fix down
-    heap_exch(h, i, h->heapsize - 1);
-    h->heapsize -= 1;
-
-    heap_fixdown(h, i);
-
-    return aux;
-}
-
-
-void heap_max_heapify(Heap *h)
-{
-    int n = h->heapsize / 2;
-
-    for (int i = 0; i < n; ++i)
-        heap_fixdown(h, i);
 }
 
 
@@ -296,6 +183,7 @@ Cell * get_opposite(Puzzle *p, Cell *c)
 
 void assign_cell(Puzzle *p, Cell *k, PCellValue v)
 {
+    ++p->n_assigned;
     Cell *o = get_opposite(p, k);
 
     k->value = v;
@@ -330,6 +218,7 @@ void assign_cell(Puzzle *p, Cell *k, PCellValue v)
 
 void unassign_cell(Puzzle *p, Cell *k)
 {
+    --p->n_assigned;
     Cell *o = get_opposite(p, k);
 
     p->counter[0][k->i] -= 1;
@@ -612,49 +501,60 @@ bool is_fulfilled(int c, int v)
 
 bool is_done(Puzzle *p)
 {
-    return p->heap->heapsize == 0;
+    return p->n_assigned == p->r * p->c / 2;
 }
 
 
-bool backtrack(Puzzle *p)
+bool r_backtrack(Puzzle *p, int i)
 {
     if (is_done(p))
         return true;
 
-    Cell *cell = heap_remove(p->heap, 0);
+    int n_magnets = p->r * p->c / 2;
+    if (i >= n_magnets)
+    {
+        printf("Number of assigned cells: %d\n", p->n_assigned);
+        printf("Out of bounds cell index %d in list size %d.\n", i, n_magnets);
+        return false;
+    }
+
+    Cell *cell = p->cells[i];
     PCellValue val;
 
-    printf("Seeking assignation for cell (%d, %d)\n", cell->i, cell->j);
+    // printf("Seeking assignation for cell (%d, %d)\n", cell->i, cell->j);
 
-    for (int i = 0; i < 3; ++i)
+    for (int j = 0; j < 3; ++j)
     {
-        if (i == 0)
+        if (j == 0)
             val = EMPTY;
-        else if (i == 1)
+        else if (j == 1)
             val = POSITIVE;
         else
             val = NEGATIVE;
 
-        printf("Check safety of value '%c' for cell (%d, %d)\n", val, cell->i, cell->j);
+        // printf("Check safety of value '%c' for cell (%d, %d)\n", val, cell->i, cell->j);
 
         if (!is_safe(p, cell, val))
             continue;
 
         assign_cell(p, cell, val);
 
-        printf("Assigned cell (%d, %d) with value '%c'.\n", cell->i, cell->j, val);
-        print_puzzle(p);
+        // printf("Assigned cell (%d, %d) with value '%c'.\n", cell->i, cell->j, val);
+        // print_puzzle(p);
 
-        if (backtrack(p))
+        if (r_backtrack(p, i + 1))
             return true;
 
         unassign_cell(p, cell);
     }
 
-    // add the item back to the heap
-    heap_insert(p->heap, cell);
-
     return false;
+}
+
+
+bool backtrack(Puzzle *p)
+{
+    return r_backtrack(p, 0);
 }
 
 

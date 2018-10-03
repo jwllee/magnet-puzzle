@@ -8,7 +8,6 @@
 
 typedef struct cell Cell;
 typedef struct puzzle Puzzle;
-typedef struct heap Heap;
 
 typedef enum
 {
@@ -38,14 +37,6 @@ struct cell
 };
 
 
-struct heap
-{
-    Cell **cells;
-    int heapsize;
-    int size;
-};
-
-
 struct puzzle
 {
     // row (+, -), col (+, -)
@@ -59,24 +50,15 @@ struct puzzle
     // row, col
     int *counter[2];
 
-    Heap *heap;
+    Cell **cells;
+    int n_assigned;
 };
 
 Cell * cell_init(int i, int j, PCellType t);
-Heap * heap_init(int n);
 Puzzle * puzzle_init(int r, int c, char **b, int *p[4]);
 
 void cell_destroy(Cell *c);
-void heap_destroy(Heap *h, bool d);
 void puzzle_destroy(Puzzle *p);
-
-// heap functions
-Cell * heap_max(Heap *h);
-void heap_fixup(Heap *h, int i);
-void heap_fixdown(Heap *h, int i);
-void heap_insert(Heap *h, Cell *c);
-Cell * heap_remove(Heap *h, int i);
-void heap_max_heapify(Heap *h);
 
 void assign_cell(Puzzle *p, Cell *k, PCellValue v);
 void unassign_cell(Puzzle *p, Cell *k);
