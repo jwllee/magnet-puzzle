@@ -12,9 +12,9 @@ typedef struct heap Heap;
 
 typedef enum
 {
-    EMPTY = 0,
-    POSITIVE = 1,
-    NEGATIVE = 2
+    EMPTY = 'E',
+    POSITIVE = 'P',
+    NEGATIVE = 'N'
 } PCellValue;
 
 
@@ -74,6 +74,7 @@ void puzzle_destroy(Puzzle *p);
 Cell * heap_max(Heap *h);
 void heap_fixup(Heap *h, int i);
 void heap_fixdown(Heap *h, int i);
+void heap_insert(Heap *h, Cell *c);
 Cell * heap_remove(Heap *h, int i);
 void heap_max_heapify(Heap *h);
 

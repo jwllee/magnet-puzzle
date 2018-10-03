@@ -223,15 +223,29 @@ void heap_fixdown(Heap *h, int i)
 }
 
 
+void heap_insert(Heap *h, Cell *c)
+{
+    if (h->size == h->heapsize)
+    {
+        printf("Heap full. Cannot add another item!\n");
+        return;
+    }
+
+    h->cells[h->heapsize] = c;
+    heap_fixup(h, h->heapsize);
+    h->heapsize += 1;
+}
+
+
 Cell * heap_remove(Heap *h, int i)
 {
     Cell * aux = h->cells[i];
 
     // exchange with the last item and fix down
     heap_exch(h, i, h->heapsize - 1);
-    heap_fixdown(h, i);
-
     h->heapsize -= 1;
+
+    heap_fixdown(h, i);
 
     return aux;
 }
@@ -246,28 +260,51 @@ void heap_max_heapify(Heap *h)
 }
 
 
+Cell * get_opposite(Puzzle *p, Cell *c)
+{
+    int i, j;
+
+    if (c->type == TOP)
+    {
+        i = c->i + 1;
+        j = c->j;
+    }
+    else if (c->type == BOTTOM)
+    {
+        i = c->i - 1;
+        j = c->j;
+    }
+    else if (c->type == LEFT)
+    {
+        i = c->i;
+        j = c->j + 1;
+    }
+    else if (c->type == RIGHT)
+    {
+        i = c->i;
+        j = c->j - 1;
+    }
+    else
+    {
+        printf("Do not recognize cell type: %d\n", c->type);
+        return NULL;
+    }
+
+    return p->board[i][j];
+}
+
+
 void assign_cell(Puzzle *p, Cell *k, PCellValue v)
 {
+    Cell *o = get_opposite(p, k);
+
     k->value = v;
-
-    int m, n;
-
-    if (k->type == TOP)
-    {
-        m = k->i - 1;
-        n = k->j;
-    }
-    else // k->type == LEFT
-    {
-        m = k->i;
-        n = k->j + 1;
-    }
 
     // update the corresponding charge and counter
     p->counter[0][k->i] += 1;
     p->counter[1][k->j] += 1;
-    p->counter[0][m] += 1;
-    p->counter[1][n] += 1;
+    p->counter[0][o->i] += 1;
+    p->counter[1][o->j] += 1;
 
     if (k->value == POSITIVE)
     {
@@ -275,67 +312,291 @@ void assign_cell(Puzzle *p, Cell *k, PCellValue v)
         p->charge[2][k->j] += 1;
 
         // also assign the other end of the magnet
-        p->charge[1][m] += 1;
-        p->charge[3][n] += 1;
-        p->board[m][n]->value = NEGATIVE;
+        p->charge[1][o->i] += 1;
+        p->charge[3][o->j] += 1;
+        o->value = NEGATIVE;
     }
     else if (k->value == NEGATIVE)
     {
         p->charge[1][k->i] += 1;
         p->charge[3][k->j] += 1;
 
-        p->charge[0][m] += 1;
-        p->charge[2][n] += 1;
-        p->board[m][n]->value = POSITIVE;
+        p->charge[0][o->i] += 1;
+        p->charge[2][o->j] += 1;
+        o->value = POSITIVE;
     }
 }
 
 
 void unassign_cell(Puzzle *p, Cell *k)
 {
-    int m, n;
-
-    if (k->type == TOP)
-    {
-        m = k->i - 1;
-        n = k->j;
-    }
-    else // k->type == LEFT
-    {
-        m = k->i;
-        n = k->j + 1;
-    }
+    Cell *o = get_opposite(p, k);
 
     p->counter[0][k->i] -= 1;
     p->counter[1][k->j] -= 1;
-    p->counter[0][m] -= 1;
-    p->counter[1][n] -= 1;
+    p->counter[0][o->i] -= 1;
+    p->counter[1][o->j] -= 1;
 
     if (k->value == POSITIVE)
     {
         p->charge[0][k->i] -= 1;
         p->charge[2][k->j] -= 1;
 
-        p->charge[1][m] -= 1;
-        p->charge[3][n] -= 1;
+        p->charge[1][o->i] -= 1;
+        p->charge[3][o->j] -= 1;
     }
     else if (k->value == NEGATIVE)
     {
         p->charge[1][k->i] -= 1;
         p->charge[3][k->j] -= 1;
 
-        p->charge[0][m] -= 1;
-        p->charge[2][n] -= 1;
+        p->charge[0][o->i] -= 1;
+        p->charge[2][o->j] -= 1;
     }
 
     k->value = EMPTY;
-    p->board[m][n]->value = EMPTY;
+    o->value = EMPTY;
 }
 
 
-bool is_consistent(Puzzle *p, Cell *c, PCellValue v)
+bool is_safe(Puzzle *p, Cell *c, PCellValue v)
 {
-    return false;
+    if (c->type != TOP && c->type != LEFT)
+    {
+        printf("Checking cell type BOTTOM or RIGHT, should not happen!\n");
+        return false;
+    }
+
+    // need to check consistency of cell c and its other magnet end
+    bool consistent = true, is_last_cell_r_0, is_last_cell_c_0, is_last_cell_r_1, is_last_cell_c_1;
+    int row_remain_0, col_remain_0, row_remain_1, col_remain_1, to_fill_0, to_fill_1;
+
+    // each row has c components!
+    Cell *o = get_opposite(p, c);
+    row_remain_0 = p->c - p->counter[0][c->i];
+    col_remain_0 = p->r - p->counter[1][c->j];
+    row_remain_1 = p->c - p->counter[0][o->i];
+    col_remain_1 = p->r - p->counter[1][o->j];
+
+    is_last_cell_r_0 = (c->type == TOP && row_remain_0 == 1) || (c->type == LEFT && row_remain_0 == 2);
+    is_last_cell_c_0 = (c->type == TOP && col_remain_0 == 2) || (c->type == LEFT && col_remain_0 == 1);
+    is_last_cell_r_1 = (c->type == TOP && row_remain_1 == 1) || (c->type == LEFT && row_remain_1 == 2);
+    is_last_cell_c_1 = (c->type == TOP && col_remain_1 == 2) || (c->type == LEFT && col_remain_1 == 1);
+
+    // checking row positive constraint if necessary
+    if (p->constraints[0][c->i] > 0)
+    {
+        to_fill_0 = p->constraints[0][c->i] - p->charge[0][c->i];
+
+        if (is_last_cell_r_0)
+        {
+            // assignment needs to match what is missing from this row
+            if (c->type == TOP)
+            {
+                if (v == EMPTY || v == NEGATIVE)
+                {
+                    consistent = consistent && to_fill_0 == 0;
+                }
+                else if (v == POSITIVE)
+                {
+                    consistent = consistent && to_fill_0 == 1;
+                }
+            }
+            else // LEFT
+            {
+                if (v == EMPTY)
+                {
+                    consistent = consistent && to_fill_0 == 0;
+                }
+                else if (v == POSITIVE || v == NEGATIVE)
+                {
+                    consistent = consistent && to_fill_0 == 1;
+                }
+            }
+        }
+    }
+
+    if (p->constraints[0][o->i] > 0 && consistent)
+    {
+        to_fill_1 = p->constraints[0][o->i] - p->charge[0][o->i];
+
+        if (is_last_cell_r_1)
+        {
+            // v == POSITIVE means that its counterpart is NEGATIVE
+            // if counterpart is empty or negative, then there should be 0 positive to fill in its row
+            if (c->type == TOP)
+            {
+                if (v == EMPTY || v == POSITIVE)
+                {
+                    consistent = consistent && to_fill_1 == 0;
+                }
+                else if (v == NEGATIVE)
+                {
+                    consistent = consistent && to_fill_1 == 1;
+                }
+            }
+            // LEFT already checked above at its counterpart which is on the same row
+        }
+    }
+
+    // checking row negative constraint if necessary
+    if (p->constraints[1][c->i] > 0 && consistent)
+    {
+        to_fill_0 = p->constraints[1][c->i] - p->charge[1][c->i];
+
+        if (is_last_cell_r_0)
+        {
+            if (c->type == TOP)
+            {
+                if (v == EMPTY || v == POSITIVE)
+                {
+                    consistent = consistent && to_fill_0 == 0;
+                }
+                else if (v == NEGATIVE)
+                {
+                    consistent = consistent && to_fill_0 == 1;
+                }
+            }
+            else // LEFT
+            {
+                if (v == EMPTY)
+                {
+                    consistent = consistent && to_fill_0 == 0;
+                }
+                else if (v == POSITIVE || v == NEGATIVE)
+                {
+                    consistent = consistent && to_fill_0 == 1;
+                }
+            }
+        }
+    }
+
+    // checking row negative constraint
+    if (p->constraints[1][o->i] > 0 && consistent)
+    {
+        to_fill_1 = p->constraints[0][o->i] - p->charge[0][o->i];
+
+        if (is_last_cell_r_1)
+        {
+            if (c->type == TOP)
+            {
+                if (v == EMPTY || v == NEGATIVE)
+                {
+                    consistent = consistent && to_fill_1 == 0;
+                }
+                else if (v == POSITIVE)
+                {
+                    consistent = consistent && to_fill_1 == 1;
+                }
+            }
+        }
+    }
+
+    // checking column positive constraint if necessary
+    if (p->constraints[2][c->j] > 0 && consistent)
+    {
+        to_fill_0 = p->constraints[2][c->j] - p->charge[2][c->j];
+
+        if (is_last_cell_c_0)
+        {
+            if (c->type == TOP)
+            {
+                if (v == EMPTY)
+                {
+                    consistent = consistent && to_fill_0 == 0;
+                }
+                else if (v == POSITIVE || v == NEGATIVE)
+                {
+                    consistent = consistent && to_fill_0 == 1;
+                }
+            }
+            else
+            {
+                if (v == EMPTY || v == NEGATIVE)
+                {
+                    consistent = consistent && to_fill_0 == 0;
+                }
+                else if (v == POSITIVE)
+                {
+                    consistent = consistent && to_fill_0 == 1;
+                }
+            }
+        }
+    }
+
+    if (p->constraints[2][o->j] > 0 && consistent)
+    {
+        to_fill_1 = p->constraints[2][o->j] - p->charge[2][o->j];
+
+        if (is_last_cell_c_1)
+        {
+            // if TOP then the two cells will be on the same column which is checked above
+            if (c->type == LEFT){
+                if (v == EMPTY || v == POSITIVE)
+                {
+                    consistent = consistent && to_fill_1 == 0;
+                }
+                else if (v == NEGATIVE)
+                {
+                    consistent = consistent && to_fill_1 == 1;
+                }
+            }
+        }
+    }
+
+    // checking column negative constraint if necessary
+    if (p->constraints[3][c->j] > 0 && consistent)
+    {
+        to_fill_0 = p->constraints[3][c->j] - p->charge[3][c->j];
+
+        if (is_last_cell_c_0)
+        {
+            if (c->type == TOP)
+            {
+                if (v == EMPTY)
+                {
+                    consistent = consistent && to_fill_0 == 0;
+                }
+                else if (v == POSITIVE || v == NEGATIVE)
+                {
+                    consistent = consistent && to_fill_0 == 1;
+                }
+            }
+            else
+            {
+                if (v == EMPTY || v == POSITIVE)
+                {
+                    consistent = consistent && to_fill_0 == 0;
+                }
+                else if (v == NEGATIVE)
+                {
+                    consistent = consistent && to_fill_0 == 1;
+                }
+            }
+        }
+    }
+
+    if (p->constraints[3][o->j] > 0 && consistent)
+    {
+        to_fill_1 = p->constraints[3][o->j] - p->charge[3][o->j];
+
+        if (is_last_cell_c_1)
+        {
+            if (c->type == LEFT)
+            {
+                if (v == EMPTY || v == NEGATIVE)
+                {
+                    consistent = consistent && to_fill_1 == 0;
+                }
+                else if (v == POSITIVE)
+                {
+                    consistent = consistent && to_fill_1 == 1;
+                }
+            }
+        }
+    }
+
+    return consistent;
 }
 
 
@@ -360,7 +621,40 @@ bool backtrack(Puzzle *p)
     if (is_done(p))
         return true;
 
-    return true;
+    Cell *cell = heap_remove(p->heap, 0);
+    PCellValue val;
+
+    printf("Seeking assignation for cell (%d, %d)\n", cell->i, cell->j);
+
+    for (int i = 0; i < 3; ++i)
+    {
+        if (i == 0)
+            val = EMPTY;
+        else if (i == 1)
+            val = POSITIVE;
+        else
+            val = NEGATIVE;
+
+        printf("Check safety of value '%c' for cell (%d, %d)\n", val, cell->i, cell->j);
+
+        if (!is_safe(p, cell, val))
+            continue;
+
+        assign_cell(p, cell, val);
+
+        printf("Assigned cell (%d, %d) with value '%c'.\n", cell->i, cell->j, val);
+        print_puzzle(p);
+
+        if (backtrack(p))
+            return true;
+
+        unassign_cell(p, cell);
+    }
+
+    // add the item back to the heap
+    heap_insert(p->heap, cell);
+
+    return false;
 }
 
 
@@ -489,7 +783,7 @@ void print_puzzle(Puzzle *p)
     {
         for (int j = 0; j < p->c; ++j)
         {
-            printf("%d ", p->board[i][j]->value);
+            printf("%c ", p->board[i][j]->value);
         }
         printf("\n");
     }
