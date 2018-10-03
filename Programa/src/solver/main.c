@@ -64,6 +64,7 @@ int main(int argc, char *argv[])
     }
 
     Puzzle *puzzle = puzzle_init(r, c, board, constraints);
+    assign_cell(puzzle, puzzle->board[0][0], POSITIVE);
     draw_puzzle(puzzle);
 
     sleep(1);

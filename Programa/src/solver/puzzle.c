@@ -9,9 +9,11 @@
 #include "../watcher/watcher.h"
 
 
-Cell * cell_init(PCellType t)
+Cell * cell_init(int i, int j, PCellType t)
 {
     Cell * cell = malloc(sizeof(Cell));
+    cell->i = i;
+    cell->j = j;
     cell->type = t;
     cell->value = EMPTY;
     // equal priority for all three possible values
@@ -54,7 +56,7 @@ Puzzle * puzzle_init(int r, int c, char **b, int *p[4])
         for (int j = 0; j < c; ++j)
         {
             t = b[i][j];
-            cell = cell_init(t);
+            cell = cell_init(i, j, t);
             puzzle->board[i][j] = cell;
 
             // only need to assign values to TOP and LEFT cells since the BOTTOM
@@ -243,41 +245,88 @@ void heap_max_heapify(Heap *h)
 }
 
 
-void assign_cell(Puzzle *p, int r, int c, Cell *k, PCellValue v)
+void assign_cell(Puzzle *p, Cell *k, PCellValue v)
 {
     k->value = v;
 
+    int m, n;
+
+    if (k->type == TOP)
+    {
+        m = k->i - 1;
+        n = k->j;
+    }
+    else // k->type == LEFT
+    {
+        m = k->i;
+        n = k->j + 1;
+    }
+
     // update the corresponding charge and counter
-    p->counter[r] += 1;
-    p->counter[c] += 1;
+    p->counter[0][k->i] += 1;
+    p->counter[1][k->j] += 1;
+    p->counter[0][m] += 1;
+    p->counter[1][n] += 1;
 
     if (k->value == POSITIVE)
     {
-        p->charge[0][r] += 1;
-        p->charge[2][c] += 1;
+        p->charge[0][k->i] += 1;
+        p->charge[2][k->j] += 1;
+
+        // also assign the other end of the magnet
+        p->charge[1][m] += 1;
+        p->charge[3][n] += 1;
+        p->board[m][n]->value = NEGATIVE;
     }
     else if (k->value == NEGATIVE)
     {
-        p->charge[1][r] += 1;
-        p->charge[3][c] += 1;
+        p->charge[1][k->i] += 1;
+        p->charge[3][k->j] += 1;
+
+        p->charge[0][m] += 1;
+        p->charge[2][n] += 1;
+        p->board[m][n]->value = POSITIVE;
     }
 }
 
 
-void unassign_cell(Puzzle *p, int r, int c, Cell *k)
+void unassign_cell(Puzzle *p, Cell *k)
 {
-    p->counter[r] -= 1;
-    p->counter[c] -= 1;
+    int m, n;
+
+    if (k->type == TOP)
+    {
+        m = k->i - 1;
+        n = k->j;
+    }
+    else // k->type == LEFT
+    {
+        m = k->i;
+        n = k->j + 1;
+    }
+
+    p->counter[0][k->i] -= 1;
+    p->counter[1][k->j] -= 1;
+    p->counter[0][m] -= 1;
+    p->counter[1][n] -= 1;
 
     if (k->value == POSITIVE)
     {
-        p->charge[0][r] -= 1;
-        p->charge[2][c] -= 1;
+        p->charge[0][k->i] -= 1;
+        p->charge[2][k->j] -= 1;
+
+        p->charge[1][m] -= 1;
+        p->charge[3][n] -= 1;
+        p->board[m][n]->value = NEGATIVE;
     }
     else if (k->value == NEGATIVE)
     {
-        p->charge[1][r] -= 1;
-        p->charge[3][c] -= 1;
+        p->charge[1][k->i] -= 1;
+        p->charge[3][k->j] -= 1;
+
+        p->charge[0][m] -= 1;
+        p->charge[2][n] -= 1;
+        p->board[m][n]->value = POSITIVE;
     }
 
     k->value = EMPTY;

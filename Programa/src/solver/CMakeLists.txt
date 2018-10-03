@@ -1,1 +1,1 @@
-add_library(Solver puzzle.c)
+add_library(Solver puzzle.c ../watcher/watcher.c)

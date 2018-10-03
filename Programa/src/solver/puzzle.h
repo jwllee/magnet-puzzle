@@ -62,7 +62,7 @@ struct puzzle
     Heap *heap;
 };
 
-Cell * cell_init(PCellType t);
+Cell * cell_init(int i, int j, PCellType t);
 Heap * heap_init(int n);
 Puzzle * puzzle_init(int r, int c, char **b, int *p[4]);
 
@@ -77,8 +77,8 @@ void heap_fixdown(Heap *h, int i);
 Cell * heap_remove(Heap *h, int i);
 void heap_max_heapify(Heap *h);
 
-void assign_cell(Puzzle *p, int r, int c, Cell *k, PCellValue v);
-void unassign_cell(Puzzle *p, int r, int c, Cell *k);
+void assign_cell(Puzzle *p, Cell *k, PCellValue v);
+void unassign_cell(Puzzle *p, Cell *k);
 
 bool is_consistent(Puzzle *p, Cell *c, PCellValue v);
 
