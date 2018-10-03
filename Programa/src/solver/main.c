@@ -66,7 +66,12 @@ int main(int argc, char *argv[])
     Puzzle *puzzle = puzzle_init(r, c, board, constraints);
     draw_puzzle(puzzle);
 
-    sleep(5);
+    sleep(1);
+
+    if (assert_puzzle(puzzle))
+        printf("Puzzle done!\n");
+    else
+        printf("Puzzle not solved.\n");
 
 	// Cerramos la interfaz (no eliminar esta linea)
 	watcher_close();
