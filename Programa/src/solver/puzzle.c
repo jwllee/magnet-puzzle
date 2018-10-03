@@ -14,6 +14,7 @@ Cell * cell_init(int i, int j, PCellType t)
     Cell * cell = malloc(sizeof(Cell));
     cell->i = i;
     cell->j = j;
+    cell->priority = 0;
     cell->type = t;
     cell->value = EMPTY;
     // equal priority for all three possible values
