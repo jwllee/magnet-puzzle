@@ -38,22 +38,22 @@ struct cell
 
 struct puzzle
 {
-    int *constraint_row_p, *constraint_col_p;
-    int *constraint_row_n, *constraint_col_n;
+    // row (+, -), col (+, -)
+    int *constraints[4];
 
-    int *row_p, *col_p;
-    int *row_n, *col_n;
+    // row (+, -), col (+, -)
+    int *polarity[4];
 
     int r, c;
     Cell ***board;
-    int *row_counter;
-    int *col_counter;
+    // row, col
+    int *counter[2];
 };
 
 PCellType char_to_type(char c);
 char type_to_char(PCellType t);
 Cell * cell_init(PCellType t);
-Puzzle * puzzle_init(int r, int c, char **b, int *row_p, int *row_n, int *col_p, int *col_n);
+Puzzle * puzzle_init(int r, int c, char **b, int *p[4]);
 
 void puzzle_destroy(Puzzle *p);
 

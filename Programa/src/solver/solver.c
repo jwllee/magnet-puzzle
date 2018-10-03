@@ -21,7 +21,7 @@ Cell * cell_init(PCellType t)
 }
 
 
-Puzzle * puzzle_init(int r, int c, char **b, int *row_p, int *row_n, int *col_p, int *col_n)
+Puzzle * puzzle_init(int r, int c, char **b, int *p[4])
 {
     Puzzle * puzzle = malloc(sizeof(Puzzle));
     puzzle->r = r;
@@ -44,37 +44,45 @@ Puzzle * puzzle_init(int r, int c, char **b, int *row_p, int *row_n, int *col_p,
         }
     }
 
-    // initiate row and col counters
-    puzzle->row_counter = malloc(r * sizeof(int));
-    puzzle->col_counter = malloc(c * sizeof(int));
-    puzzle->row_p = malloc(r * sizeof(int));
-    puzzle->row_n = malloc(r * sizeof(int));
-    puzzle->col_p = malloc(c * sizeof(int));
-    puzzle->col_n = malloc(c * sizeof(int));
+    // initiate variables
+    for (int i = 0; i < 4; ++i)
+    {
+        if (i < 2)
+        {
+            puzzle->constraints[i] = malloc(r * sizeof(int));
+            puzzle->polarity[i] = malloc(r * sizeof(int));
+
+            // copy the row constraints
+            memcpy(puzzle->constraints[i], p[i], r * sizeof(int));
+        }
+        else
+        {
+            puzzle->constraints[i] = malloc(c * sizeof(int));
+            puzzle->polarity[i] = malloc(c * sizeof(int));
+
+            // copy the column constraints
+            memcpy(puzzle->constraints[i], p[i], c * sizeof(int));
+        }
+    }
+
+    puzzle->counter[0] = malloc(r * sizeof(int));
+    puzzle->counter[1] = malloc(c * sizeof(int));
 
     for (int i = 0; i < r; ++i)
     {
-        puzzle->row_counter[i] = 0;
-        puzzle->row_p[i] = 0;
-        puzzle->row_n[i] = 0;
+        puzzle->counter[0][i] = 0;
+        // row (+, -)
+        puzzle->polarity[0][i] = 0;
+        puzzle->polarity[1][i] = 0;
     }
 
     for (int i = 0; i < c; ++i)
     {
-        puzzle->col_counter[i] = 0;
-        puzzle->col_p[i] = 0;
-        puzzle->col_n[i] = 0;
+        puzzle->counter[1][i] = 0;
+        // col (+, -)
+        puzzle->polarity[2][i] = 0;
+        puzzle->polarity[3][i] = 0;
     }
-
-    puzzle->constraint_row_p = malloc(r * sizeof(int));
-    puzzle->constraint_row_n = malloc(r * sizeof(int));
-    puzzle->constraint_col_p = malloc(c * sizeof(int));
-    puzzle->constraint_col_n = malloc(c * sizeof(int));
-
-    memcpy(puzzle->constraint_row_p, row_p, r * sizeof(int));
-    memcpy(puzzle->constraint_row_n, row_n, r * sizeof(int));
-    memcpy(puzzle->constraint_col_p, col_p, c * sizeof(int));
-    memcpy(puzzle->constraint_col_n, col_n, c * sizeof(int));
 
     return puzzle;
 }
@@ -88,11 +96,16 @@ void cell_destroy(Cell *c)
 
 void puzzle_destroy(Puzzle *p)
 {
-    // free the constraints
-    free(p->constraint_row_p);
-    free(p->constraint_col_p);
-    free(p->constraint_row_n);
-    free(p->constraint_col_n);
+    // free the constraints, polarity counts, and counters
+    for (int i = 0; i < 4; i++)
+    {
+        free(p->constraints[i]);
+        free(p->polarity[i]);
+
+        // there are only two counters: row and col
+        if (i < 2)
+            free(p->counter[i]);
+    }
 
     // free the board
     for (int i = 0; i < p->r; ++i)
@@ -104,15 +117,6 @@ void puzzle_destroy(Puzzle *p)
         free(p->board[i]);
     }
     free(p->board);
-
-    // free counters
-    free(p->row_counter);
-    free(p->col_counter);
-    free(p->row_p);
-    free(p->row_n);
-    free(p->col_p);
-    free(p->col_n);
-
     free(p);
 }
 
@@ -166,30 +170,26 @@ bool is_fulfilled(Puzzle *p, bool print)
     int rowFulfilled = 0;
     int colFulfilled = 0;
 
-    for (int i = 0; i < p->r; ++i)
+    for (int i = 0; i < 2; ++i)
     {
-        if (is_violating(p->constraint_row_p[i], p->row_p[i]) && print)
-            printf("Row %d violation: %d < %d\n", i, p->constraint_row_p[i], p->row_p[i]);
-        else if (is_fulfilled_single(p->constraint_row_p[i], p->row_p[i]))
-            rowFulfilled += 1;
-
-        if (is_violating(p->constraint_row_n[i], p->row_n[i]) && print)
-            printf("Row %d violation: %d < %d\n", i, p->constraint_row_n[i], p->row_n[i]);
-        else if (is_fulfilled_single(p->constraint_row_n[i], p->row_n[i]))
-            rowFulfilled += 1;
+        for (int j = 0; j < p->r; ++j)
+        {
+            if (is_violating(p->constraints[i][j], p->polarity[i][j]) && print)
+                printf("Row %d violation: %d < %d\n", j, p->constraints[i][j], p->polarity[i][j]);
+            else if (is_fulfilled_single(p->constraints[i][j], p->polarity[i][j]))
+                rowFulfilled += 1;
+        }
     }
 
-    for (int i = 0; i < p->c; ++i)
+    for (int i = 2; i < 4; ++i)
     {
-        if (is_violating(p->constraint_col_p[i], p->col_p[i]) && print)
-            printf("Col %d violation: %d < %d\n", i, p->constraint_col_p[i], p->col_p[i]);
-        else if (is_fulfilled_single(p->constraint_col_p[i], p->col_p[i]))
-            colFulfilled += 1;
-
-        if (is_violating(p->constraint_col_n[i], p->col_n[i]) && print)
-            printf("Col %d violation: %d < %d\n", i, p->constraint_col_n[i], p->col_n[i]);
-        else if (is_fulfilled_single(p->constraint_col_n[i], p->col_n[i]))
-            colFulfilled += 1;
+        for (int j = 0; j < p->c; ++j)
+        {
+            if (is_violating(p->constraints[i][j], p->polarity[i][j] && print))
+                printf("Col %d violation: %d < %d\n", i, p->constraints[i][j], p->polarity[i][j]);
+            else if (is_fulfilled_single(p->constraints[i][j], p->polarity[i][j]))
+                colFulfilled += 1;
+        }
     }
 
     bool fulfilled = rowFulfilled / 2 == p->r && colFulfilled / 2 == p->c;
@@ -226,12 +226,12 @@ void print_puzzle(Puzzle *p)
     // print row and column constraints
     printf("Constraints: \n");
     printf("Row (+, -)\n");
-    print_int_array(p->constraint_row_p, p->r);
-    print_int_array(p->constraint_row_n, p->r);
+    print_int_array(p->constraints[0], p->r);
+    print_int_array(p->constraints[1], p->r);
 
     printf("Col (+, -)\n");
-    print_int_array(p->constraint_col_p, p->c);
-    print_int_array(p->constraint_col_n, p->c);
+    print_int_array(p->constraints[2], p->c);
+    print_int_array(p->constraints[3], p->c);
 
     printf("\n");
 
@@ -247,19 +247,19 @@ void print_puzzle(Puzzle *p)
     printf("\n");
 
     printf("Row assignation: \n");
-    print_int_array(p->row_counter, p->r);
+    print_int_array(p->counter[0], p->r);
     printf("Col assignation: \n");
-    print_int_array(p->col_counter, p->c);
+    print_int_array(p->counter[1], p->c);
 
     printf("\n");
 
     printf("Row (+, -)\n");
-    print_int_array(p->row_p, p->r);
-    print_int_array(p->row_n, p->r);
+    print_int_array(p->constraints[0], p->r);
+    print_int_array(p->constraints[1], p->r);
 
     printf("Col (+, -)\n");
-    print_int_array(p->col_p, p->c);
-    print_int_array(p->col_n, p->c);
+    print_int_array(p->constraints[2], p->c);
+    print_int_array(p->constraints[3], p->c);
 
     printf("\n");
 
