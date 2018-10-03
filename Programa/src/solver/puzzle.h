@@ -83,6 +83,7 @@ void unassign_cell(Puzzle *p, Cell *k);
 bool is_consistent(Puzzle *p, Cell *c, PCellValue v);
 
 bool is_done(Puzzle *p);
+Cell * get_next_cell(Puzzle *p);
 bool backtrack(Puzzle *p);
 
 bool assert_puzzle(Puzzle *p);
