@@ -40,6 +40,10 @@ Puzzle * puzzle_init(int r, int c, char **b, int *p[4])
 
     // r rows where each row has c components
     puzzle->board = malloc(r * sizeof(Cell *));
+    puzzle->heap = heap_init(r * c / 2);
+
+    Cell *cell;
+
     for (int i = 0; i < r; ++i)
     {
         puzzle->board[i] = malloc(c * sizeof(Cell));
@@ -50,7 +54,16 @@ Puzzle * puzzle_init(int r, int c, char **b, int *p[4])
         for (int j = 0; j < c; ++j)
         {
             t = b[i][j];
-            puzzle->board[i][j] = cell_init(t);
+            cell = cell_init(t);
+            puzzle->board[i][j] = cell;
+
+            // only need to assign values to TOP and LEFT cells since the BOTTOM
+            // and RIGHT cells will get assigned automatically
+            if (t == TOP || t == LEFT)
+            {
+                puzzle->heap->cells[puzzle->heap->heapsize] = cell;
+                puzzle->heap->heapsize += 1;
+            }
         }
     }
 
