@@ -27,6 +27,45 @@ Cell * cell_init(int i, int j, PCellType t)
 }
 
 
+void set_cell_priority(Puzzle *p, Cell **cells, int n, int *priority[4])
+{
+    Cell *cell0, *cell1;
+    int val;
+
+    for (int i = 0; i < n; ++i)
+    {
+        val = 0;
+        cell0 = cells[i];
+        cell1 = get_opposite(p, cell0);
+
+        // no need to do duplicated work
+        if (cell0->type == BOTTOM || cell0->type == RIGHT)
+            continue;
+
+        // priority is the sum of the surrounding constraints
+        if (cell0->type == TOP)
+        {
+            // row of cell0
+            val += priority[0][cell0->i] + priority[1][cell0->i];
+            // row of cell1
+            val += priority[0][cell1->i] + priority[1][cell1->i];
+            // col of both
+            val += priority[2][cell0->j] + priority[2][cell0->j];
+        }
+        else
+        {
+            val += priority[0][cell0->i] + priority[1][cell0->i];
+            val += priority[2][cell0->j] + priority[2][cell0->j];
+            val += priority[2][cell1->j] + priority[3][cell1->j];
+        }
+
+        cell0->priority = val;
+        cell1->priority = val;
+    }
+
+}
+
+
 Puzzle * puzzle_init(int r, int c, char **b, int *p[4], bool slow)
 {
     Puzzle * puzzle = malloc(sizeof(Puzzle));
@@ -64,14 +103,16 @@ Puzzle * puzzle_init(int r, int c, char **b, int *p[4], bool slow)
         }
     }
 
-    sort_cells(puzzle->cells, 0, r * c / 2, false);
-
     // safety check about the number of magnets
     if (cnt != r * c / 2)
     {
         printf("Number of magnets does not equal r x c / 2!\n");
         return NULL;
     }
+
+    set_cell_priority(puzzle, puzzle->cells, cnt, p);
+    sort_cells(puzzle->cells, 0, r * c / 2, false);
+
 
     // initiate variables
     for (int i = 0; i < 4; ++i)
