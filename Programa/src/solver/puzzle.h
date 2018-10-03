@@ -11,9 +11,9 @@ typedef struct puzzle Puzzle;
 
 typedef enum
 {
-    EMPTY = 'E',
-    POSITIVE = 'P',
-    NEGATIVE = 'N'
+    EMPTY = 0,
+    POSITIVE = 1,
+    NEGATIVE = -1
 } PCellValue;
 
 
@@ -39,6 +39,7 @@ struct cell
 
 struct puzzle
 {
+    bool slow;
     // row (+, -), col (+, -)
     int *constraints[4];
 
@@ -55,11 +56,12 @@ struct puzzle
 };
 
 Cell * cell_init(int i, int j, PCellType t);
-Puzzle * puzzle_init(int r, int c, char **b, int *p[4]);
+Puzzle * puzzle_init(int r, int c, char **b, int *p[4], bool slow);
 
 void cell_destroy(Cell *c);
 void puzzle_destroy(Puzzle *p);
 
+char cval_to_char(PCellValue v);
 void assign_cell(Puzzle *p, Cell *k, PCellValue v);
 void unassign_cell(Puzzle *p, Cell *k);
 
