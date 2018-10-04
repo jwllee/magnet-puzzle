@@ -7,6 +7,21 @@
 #include "puzzle.h"
 
 
+const char * get_prune_strategy(PruneStrategy ps)
+{
+    switch (ps)
+    {
+        case NONE:
+            return "None";
+        case SUFFICIENT:
+            return "Sufficient";
+        default:
+            printf("Do not recognize prune strategy enum: %d", ps);
+            return "";
+    }
+}
+
+
 void merge(Cell **cells, int l, int m, int r, bool ascend)
 {
     int lsize = (m - l), rsize = (r - m);

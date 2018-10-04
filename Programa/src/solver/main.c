@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
         // printf("row %d: %s\n", i, board[i]);
     }
 
-    Puzzle *puzzle = puzzle_init(r, c, board, constraints, false);
+    Puzzle *puzzle = puzzle_init(r, c, board, constraints, false, SUFFICIENT);
     // assign_cell(puzzle, puzzle->board[0][0], POSITIVE);
     backtrack(puzzle);
 

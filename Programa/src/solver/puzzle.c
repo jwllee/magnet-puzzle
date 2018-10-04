@@ -78,11 +78,12 @@ void set_cell_priority(Puzzle *p, Cell **cells, int n, int *priority[4])
 }
 
 
-Puzzle * puzzle_init(int r, int c, char **b, int *p[4], bool slow)
+Puzzle * puzzle_init(int r, int c, char **b, int *p[4], bool slow, PruneStrategy ps)
 {
     Puzzle * puzzle = malloc(sizeof(Puzzle));
     puzzle->r = r;
     puzzle->c = c;
+    puzzle->ps = ps;
     puzzle->slow = slow;
 
     // r rows where each row has c components
@@ -393,6 +394,21 @@ bool check_neighbors(Puzzle *p, Cell *c, CellCharge v)
 }
 
 
+bool apply_prune_strategy(Puzzle *p, Cell *c, CellCharge v)
+{
+    switch (p->ps)
+    {
+        case NONE:
+            return true;
+        case SUFFICIENT:
+            return prune_sufficient(p, c, v);
+        default:
+            printf("Do not recognize prune strategy: %s", get_prune_strategy(p->ps));
+            return true;
+    }
+}
+
+
 bool is_safe(Puzzle *p, Cell *c, CellCharge v)
 {
     if (c->type != TOP && c->type != LEFT)
@@ -412,7 +428,7 @@ bool is_safe(Puzzle *p, Cell *c, CellCharge v)
 
     // printf("Cell with value '%c', other cell with value '%c'.\n", cval_to_char(v), cval_to_char(-v));
 
-    consistent = consistent && prune_sufficient(p, c, v);
+    consistent = consistent && apply_prune_strategy(p, c, v);
 
     // each row has c components!
     row_remain_0 = p->c - p->counter[0][c->i];
