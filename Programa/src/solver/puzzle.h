@@ -67,7 +67,6 @@ Cell * get_opposite(Puzzle *p, Cell *c);
 void assign_cell(Puzzle *p, int i, Cell *k, PCellValue v);
 void unassign_cell(Puzzle *p, int i, Cell *k);
 
-bool is_consistent(Puzzle *p, Cell *c, PCellValue v);
 bool is_done(Puzzle *p);
 Cell * get_next_cell(Puzzle *p, int *i);
 bool backtrack(Puzzle *p);
