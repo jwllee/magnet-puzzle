@@ -29,18 +29,10 @@ Cell * cell_init(int i, int j, CellOrient t)
     cell->type = t;
     cell->value = EMPTY;
 
-    cell->n_assigned = 0;
     cell->n_values = 3;
-    cell->assigned = malloc(cell->n_values * sizeof(bool));
     cell->values = malloc(cell->n_values * sizeof(CellValue *));
-
-    for (int k = 0; k < cell->n_values; ++k)
-    {
-        cell->assigned[k] = false;
-    }
-
-    cell->values[0] = cvalue_init(EMPTY);
-    cell->values[1] = cvalue_init(POSITIVE);
+    cell->values[0] = cvalue_init(POSITIVE);
+    cell->values[1] = cvalue_init(EMPTY);
     cell->values[2] = cvalue_init(NEGATIVE);
 
     return cell;
@@ -189,10 +181,8 @@ void cell_destroy(Cell *c)
 {
     for (int i = 0; i < c->n_values; ++i)
     {
-        if (c->assigned[i])
-            cvalue_destroy(c->values[i]);
+        cvalue_destroy(c->values[i]);
     }
-    free(c->assigned);
     free(c->values);
     free(c);
 }
@@ -703,18 +693,23 @@ bool r_backtrack(Puzzle *p, int i)
     }
 
     Cell *cell = get_next_cell(p, &i);
-    CellCharge val;
+    CellValue *val;
+    CellCharge charge;
 
     // printf("Seeking assignation for cell (%d, %d)\n", cell->i, cell->j);
 
-    for (val = NEGATIVE; val <= POSITIVE; ++val)
+    // for (charge = NEGATIVE; charge <= POSITIVE; ++charge)
+    for (int k = 0; k < cell->n_values; ++k)
     {
+        val = cell->values[k];
+        charge = val->value;
+
         // printf("Check safety of value '%c' for cell (%d, %d)\n", cval_to_char(val), cell->i, cell->j);
 
-        if (!is_safe(p, cell, val))
+        if (!is_safe(p, cell, charge))
             continue;
 
-        assign_cell(p, i, cell, val);
+        assign_cell(p, i, cell, charge);
 
         // printf("Assigned cell (%d, %d) with value '%c'.\n", cell->i, cell->j, cval_to_char(val));
         // print_puzzle(p);

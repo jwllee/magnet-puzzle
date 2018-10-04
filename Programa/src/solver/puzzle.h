@@ -40,8 +40,7 @@ struct cell
     CellOrient type;
     CellCharge value;
 
-    int n_assigned, n_values;
-    bool *assigned;
+    int n_values;
     CellValue **values;
 };
 
