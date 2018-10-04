@@ -39,6 +39,10 @@ struct cell
     int i, j, priority;
     CellOrient type;
     CellCharge value;
+
+    int n_assigned, n_values;
+    bool *assigned;
+    CellValue **values;
 };
 
 

@@ -28,6 +28,21 @@ Cell * cell_init(int i, int j, CellOrient t)
     cell->priority = 0;
     cell->type = t;
     cell->value = EMPTY;
+
+    cell->n_assigned = 0;
+    cell->n_values = 3;
+    cell->assigned = malloc(cell->n_values * sizeof(bool));
+    cell->values = malloc(cell->n_values * sizeof(CellValue *));
+
+    for (int k = 0; k < cell->n_values; ++k)
+    {
+        cell->assigned[k] = false;
+    }
+
+    cell->values[0] = cvalue_init(EMPTY);
+    cell->values[1] = cvalue_init(POSITIVE);
+    cell->values[2] = cvalue_init(NEGATIVE);
+
     return cell;
 }
 
@@ -172,6 +187,13 @@ void cvalue_destroy(CellValue *v)
 
 void cell_destroy(Cell *c)
 {
+    for (int i = 0; i < c->n_values; ++i)
+    {
+        if (c->assigned[i])
+            cvalue_destroy(c->values[i]);
+    }
+    free(c->assigned);
+    free(c->values);
     free(c);
 }
 
