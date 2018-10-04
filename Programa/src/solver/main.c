@@ -50,6 +50,7 @@ int main(int argc, char *argv[])
     // read the board
     char **board = malloc(r * sizeof(char *));
     char cell;
+    
     for (int i = 0; i < r; ++i)
     {
         board[i] = malloc(c * sizeof(char));
@@ -63,13 +64,15 @@ int main(int argc, char *argv[])
         // printf("row %d: %s\n", i, board[i]);
     }
 
-    Puzzle *puzzle = puzzle_init(r, c, board, constraints, false, SUFFICIENT);
-    // assign_cell(puzzle, puzzle->board[0][0], POSITIVE);
+    bool slow = false;
+
+    Puzzle *puzzle = puzzle_init(r, c, board, constraints, slow, SUFFICIENT);
     backtrack(puzzle);
 
-    // draw_puzzle(puzzle);
-
-    sleep(1);
+    if (puzzle->slow)
+    {
+        sleep(5);
+    }
 
     if (assert_puzzle(puzzle))
         printf("Puzzle done!\n");
