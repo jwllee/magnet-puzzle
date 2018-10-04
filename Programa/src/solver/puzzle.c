@@ -399,7 +399,7 @@ bool is_safe(Puzzle *p, Cell *c, PCellValue v)
     is_last_cell_c_1 = (c->type == TOP && col_remain_1 == 2) || (c->type == LEFT && col_remain_1 == 1);
 
     // checking row positive constraint if necessary
-    if (p->constraints[0][c->i] > 0)
+    if (p->constraints[0][c->i] > 0 && consistent)
     {
         to_fill_0 = p->constraints[0][c->i] - p->charge[0][c->i];
 
@@ -489,7 +489,7 @@ bool is_safe(Puzzle *p, Cell *c, PCellValue v)
     // checking row negative constraint
     if (p->constraints[1][o->i] > 0 && consistent)
     {
-        to_fill_1 = p->constraints[0][o->i] - p->charge[0][o->i];
+        to_fill_1 = p->constraints[1][o->i] - p->charge[1][o->i];
 
         if (is_last_cell_r_1)
         {
