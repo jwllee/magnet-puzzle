@@ -48,7 +48,7 @@ LIB=$(MTH) $(GTK)
 COMMON=watcher
 
 # Directorios que serán compilados a un programa
-PROGRAMS=solver seer
+PROGRAMS=solver
 
 # Todos los directorios que contienen archivos de código
 SRCDIR=$(COMMON) $(PROGRAMS)
