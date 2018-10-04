@@ -50,12 +50,12 @@ void set_cell_priority(Puzzle *p, Cell **cells, int n, int *priority[4])
             // row of cell1
             val += priority[0][cell1->i] + priority[1][cell1->i];
             // col of both
-            val += priority[2][cell0->j] + priority[2][cell0->j];
+            val += priority[2][cell0->j] + priority[3][cell0->j];
         }
         else
         {
             val += priority[0][cell0->i] + priority[1][cell0->i];
-            val += priority[2][cell0->j] + priority[2][cell0->j];
+            val += priority[2][cell0->j] + priority[3][cell0->j];
             val += priority[2][cell1->j] + priority[3][cell1->j];
         }
 
@@ -111,8 +111,7 @@ Puzzle * puzzle_init(int r, int c, char **b, int *p[4], bool slow)
     }
 
     set_cell_priority(puzzle, puzzle->cells, cnt, p);
-    sort_cells(puzzle->cells, 0, r * c / 2, false);
-
+    sort_cells(puzzle->cells, 0, cnt, false);
 
     // initiate variables
     for (int i = 0; i < 4; ++i)
