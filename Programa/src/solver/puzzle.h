@@ -52,6 +52,7 @@ struct puzzle
     int *counter[2];
 
     Cell **cells;
+    bool * assigned;
     int n_assigned;
 };
 
@@ -63,12 +64,12 @@ void puzzle_destroy(Puzzle *p);
 
 char cval_to_char(PCellValue v);
 Cell * get_opposite(Puzzle *p, Cell *c);
-void assign_cell(Puzzle *p, Cell *k, PCellValue v);
-void unassign_cell(Puzzle *p, Cell *k);
+void assign_cell(Puzzle *p, int i, Cell *k, PCellValue v);
+void unassign_cell(Puzzle *p, int i, Cell *k);
 
 bool is_consistent(Puzzle *p, Cell *c, PCellValue v);
 bool is_done(Puzzle *p);
-Cell * get_next_cell(Puzzle *p);
+Cell * get_next_cell(Puzzle *p, int *i);
 bool backtrack(Puzzle *p);
 
 bool assert_puzzle(Puzzle *p);

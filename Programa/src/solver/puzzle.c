@@ -75,6 +75,7 @@ Puzzle * puzzle_init(int r, int c, char **b, int *p[4], bool slow)
 
     // r rows where each row has c components
     puzzle->n_assigned = 0;
+    puzzle->assigned = malloc((r * c / 2) * sizeof(bool));
     puzzle->cells = malloc((r * c / 2) * sizeof(Cell *));
     puzzle->board = malloc(r * sizeof(Cell *));
 
@@ -98,6 +99,7 @@ Puzzle * puzzle_init(int r, int c, char **b, int *p[4], bool slow)
             // and RIGHT cells will get assigned automatically
             if (t == TOP || t == LEFT)
             {
+                puzzle->assigned[cnt] = false;
                 puzzle->cells[cnt++] = cell;
             }
         }
@@ -188,6 +190,7 @@ void puzzle_destroy(Puzzle *p)
     free(p->board);
 
     free(p->cells);
+    free(p->assigned);
     free(p);
 }
 
@@ -261,9 +264,11 @@ void undraw_cell(Cell *k, bool slow)
 }
 
 
-void assign_cell(Puzzle *p, Cell *k, PCellValue v)
+void assign_cell(Puzzle *p, int i, Cell *k, PCellValue v)
 {
     ++p->n_assigned;
+    p->assigned[i] = true;
+
     Cell *o = get_opposite(p, k);
 
     k->value = v;
@@ -299,9 +304,11 @@ void assign_cell(Puzzle *p, Cell *k, PCellValue v)
 }
 
 
-void unassign_cell(Puzzle *p, Cell *k)
+void unassign_cell(Puzzle *p, int i, Cell *k)
 {
     --p->n_assigned;
+    p->assigned[i] = false;
+
     Cell *o = get_opposite(p, k);
 
     p->counter[0][k->i] -= 1;
@@ -631,6 +638,24 @@ bool is_done(Puzzle *p)
 }
 
 
+Cell * get_next_cell(Puzzle *p, int *i)
+{
+    Cell *cell;
+    int max_cells = p->r * p->c / 2;
+
+    // get the next unassigned cell
+    while (p->assigned[*i])
+    {
+        ++*i;
+        // start back from zero if necessary
+        *i %= max_cells;
+    }
+    cell = p->cells[*i];
+
+    return cell;
+}
+
+
 bool r_backtrack(Puzzle *p, int i)
 {
     if (is_done(p))
@@ -644,7 +669,7 @@ bool r_backtrack(Puzzle *p, int i)
         return false;
     }
 
-    Cell *cell = p->cells[i];
+    Cell *cell = get_next_cell(p, &i);
     PCellValue val;
 
     // printf("Seeking assignation for cell (%d, %d)\n", cell->i, cell->j);
@@ -656,7 +681,7 @@ bool r_backtrack(Puzzle *p, int i)
         if (!is_safe(p, cell, val))
             continue;
 
-        assign_cell(p, cell, val);
+        assign_cell(p, i, cell, val);
 
         // printf("Assigned cell (%d, %d) with value '%c'.\n", cell->i, cell->j, cval_to_char(val));
         // print_puzzle(p);
@@ -665,7 +690,7 @@ bool r_backtrack(Puzzle *p, int i)
             return true;
 
         // printf("Unassigned cell (%d, %d) with value '%c'.\n", cell->i, cell->j, cval_to_char(val));
-        unassign_cell(p, cell);
+        unassign_cell(p, i, cell);
     }
 
     return false;
