@@ -39,9 +39,6 @@ struct cell
     int i, j, priority;
     CellOrient type;
     CellCharge value;
-    // if priority == 0, then it means that the value is not a valid one
-    // there are 3 possible values:
-    int valuePriority[3];
 };
 
 

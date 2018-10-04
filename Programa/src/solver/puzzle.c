@@ -28,10 +28,6 @@ Cell * cell_init(int i, int j, CellOrient t)
     cell->priority = 0;
     cell->type = t;
     cell->value = EMPTY;
-    // equal priority for all three possible values
-    cell->valuePriority[0] = 1;
-    cell->valuePriority[1] = 1;
-    cell->valuePriority[2] = 1;
     return cell;
 }
 
