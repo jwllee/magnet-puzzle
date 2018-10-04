@@ -248,20 +248,6 @@ Cell * get_opposite(Puzzle *p, Cell *c)
 }
 
 
-char cval_to_char(CellCharge v)
-{
-    switch (v)
-    {
-        case NEGATIVE:
-            return 'N';
-        case EMPTY:
-            return 'E';
-        default:
-            return 'P';
-    }
-}
-
-
 void draw_cell(Cell *k, CellCharge v, bool slow)
 {
     if (v == EMPTY)
@@ -372,12 +358,12 @@ bool check_neighbors(Puzzle *p, Cell *c, CellCharge v)
     bool safe = true;
 
     // left cell or it's already at the border
-    // printf("Cell value: '%c'.\n", cval_to_char(v));
+    // printf("Cell value: '%c'.\n", get_cell_charge(v));
     // if (j > 0)
     // {
-    //     printf("Left cell has value: '%c'.\n", cval_to_char(p->board[i][j - 1]->value));
-    //     printf("'%c' == '%c': %s\n", cval_to_char(p->board[i][j - 1]->value),
-    //                                  cval_to_char(v), v == p->board[i][j - 1]->value ? "true" : "false");
+    //     printf("Left cell has value: '%c'.\n", get_cell_charge(p->board[i][j - 1]->value));
+    //     printf("'%c' == '%c': %s\n", get_cell_charge(p->board[i][j - 1]->value),
+    //                                  get_cell_charge(v), v == p->board[i][j - 1]->value ? "true" : "false");
     // }
 
     safe = safe && (j <= 0 || p->board[i][j - 1]->value != v);
@@ -426,7 +412,7 @@ bool is_safe(Puzzle *p, Cell *c, CellCharge v)
     consistent = consistent && check_neighbors(p, c, v);
     consistent = consistent && check_neighbors(p, o, -v);
 
-    // printf("Cell with value '%c', other cell with value '%c'.\n", cval_to_char(v), cval_to_char(-v));
+    // printf("Cell with value '%c', other cell with value '%c'.\n", get_cell_charge(v), get_cell_charge(-v));
 
     consistent = consistent && apply_prune_strategy(p, c, v);
 
@@ -692,20 +678,20 @@ bool r_backtrack(Puzzle *p, int i)
         val = cell->values[k];
         charge = val->value;
 
-        // printf("Check safety of value '%c' for cell (%d, %d)\n", cval_to_char(val), cell->i, cell->j);
+        // printf("Check safety of value '%c' for cell (%d, %d)\n", get_cell_charge(val), cell->i, cell->j);
 
         if (!is_safe(p, cell, charge))
             continue;
 
         assign_cell(p, i, cell, charge);
 
-        // printf("Assigned cell (%d, %d) with value '%c'.\n", cell->i, cell->j, cval_to_char(val));
+        // printf("Assigned cell (%d, %d) with value '%c'.\n", cell->i, cell->j, get_cell_charge(val));
         // print_puzzle(p);
 
         if (r_backtrack(p, i + 1))
             return true;
 
-        // printf("Unassigned cell (%d, %d) with value '%c'.\n", cell->i, cell->j, cval_to_char(val));
+        // printf("Unassigned cell (%d, %d) with value '%c'.\n", cell->i, cell->j, get_cell_charge(val));
         unassign_cell(p, i, cell);
     }
 
@@ -839,7 +825,7 @@ void print_puzzle(Puzzle *p)
     {
         for (int j = 0; j < p->c; ++j)
         {
-            printf("%c ", cval_to_char(p->board[i][j]->value));
+            printf("%s ", get_cell_charge(p->board[i][j]->value));
         }
         printf("\n");
     }

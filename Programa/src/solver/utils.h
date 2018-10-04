@@ -14,3 +14,6 @@ void sort_cells(Cell **cells, int l, int r, bool ascend);
 
 
 const char * get_prune_strategy(PruneStrategy ps);
+
+
+const char * get_cell_charge(CellCharge c);

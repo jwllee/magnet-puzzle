@@ -22,6 +22,23 @@ const char * get_prune_strategy(PruneStrategy ps)
 }
 
 
+const char * get_cell_charge(CellCharge c)
+{
+    switch (c)
+    {
+        case EMPTY:
+            return "E";
+        case NEGATIVE:
+            return "N";
+        case POSITIVE:
+            return "P";
+        default:
+            printf("Do not recognize cell charge enum: %d.\n", c);
+            return "";
+    }
+}
+
+
 void merge(Cell **cells, int l, int m, int r, bool ascend)
 {
     int lsize = (m - l), rsize = (r - m);
