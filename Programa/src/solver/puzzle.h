@@ -6,6 +6,7 @@
 
 #include <stdbool.h>
 
+typedef struct cellvalue CellValue;
 typedef struct cell Cell;
 typedef struct puzzle Puzzle;
 
@@ -63,9 +64,11 @@ struct puzzle
     int n_assigned;
 };
 
+CellValue * cvalue_init(CellCharge v);
 Cell * cell_init(int i, int j, CellOrient t);
 Puzzle * puzzle_init(int r, int c, char **b, int *p[4], bool slow);
 
+void cvalue_destroy(CellValue *v);
 void cell_destroy(Cell *c);
 void puzzle_destroy(Puzzle *p);
 

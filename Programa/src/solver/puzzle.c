@@ -11,6 +11,15 @@
 #include <unistd.h>
 
 
+CellValue * cvalue_init(CellCharge v)
+{
+    CellValue * cv = malloc(sizeof(CellValue));
+    cv->priority = 0;
+    cv->value = v;
+    return cv;
+}
+
+
 Cell * cell_init(int i, int j, CellOrient t)
 {
     Cell * cell = malloc(sizeof(Cell));
@@ -156,6 +165,12 @@ Puzzle * puzzle_init(int r, int c, char **b, int *p[4], bool slow)
     }
 
     return puzzle;
+}
+
+
+void cvalue_destroy(CellValue *v)
+{
+    free(v);
 }
 
 
