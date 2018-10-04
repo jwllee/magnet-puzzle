@@ -14,7 +14,7 @@ typedef enum
     EMPTY = 0,
     POSITIVE = 1,
     NEGATIVE = -1
-} PCellValue;
+} CellCharge;
 
 
 typedef enum
@@ -23,14 +23,21 @@ typedef enum
     BOTTOM = 'B',
     LEFT = 'L',
     RIGHT = 'R'
-} PCellType;
+} CellOrient;
+
+
+struct cellvalue
+{
+    CellCharge value;
+    int priority;
+};
 
 
 struct cell
 {
     int i, j, priority;
-    PCellType type;
-    PCellValue value;
+    CellOrient type;
+    CellCharge value;
     // if priority == 0, then it means that the value is not a valid one
     // there are 3 possible values:
     int valuePriority[3];
@@ -56,15 +63,15 @@ struct puzzle
     int n_assigned;
 };
 
-Cell * cell_init(int i, int j, PCellType t);
+Cell * cell_init(int i, int j, CellOrient t);
 Puzzle * puzzle_init(int r, int c, char **b, int *p[4], bool slow);
 
 void cell_destroy(Cell *c);
 void puzzle_destroy(Puzzle *p);
 
-char cval_to_char(PCellValue v);
+char cval_to_char(CellCharge v);
 Cell * get_opposite(Puzzle *p, Cell *c);
-void assign_cell(Puzzle *p, int i, Cell *k, PCellValue v);
+void assign_cell(Puzzle *p, int i, Cell *k, CellCharge v);
 void unassign_cell(Puzzle *p, int i, Cell *k);
 
 bool is_done(Puzzle *p);

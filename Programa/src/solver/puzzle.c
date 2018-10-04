@@ -11,7 +11,7 @@
 #include <unistd.h>
 
 
-Cell * cell_init(int i, int j, PCellType t)
+Cell * cell_init(int i, int j, CellOrient t)
 {
     Cell * cell = malloc(sizeof(Cell));
     cell->i = i;
@@ -87,7 +87,7 @@ Puzzle * puzzle_init(int r, int c, char **b, int *p[4], bool slow)
         puzzle->board[i] = malloc(c * sizeof(Cell));
 
         // set as unassigned
-        PCellType t;
+        CellOrient t;
 
         for (int j = 0; j < c; ++j)
         {
@@ -229,7 +229,7 @@ Cell * get_opposite(Puzzle *p, Cell *c)
 }
 
 
-char cval_to_char(PCellValue v)
+char cval_to_char(CellCharge v)
 {
     if (v == NEGATIVE)
         return 'N';
@@ -240,7 +240,7 @@ char cval_to_char(PCellValue v)
 }
 
 
-void draw_cell(Cell *k, PCellValue v, bool slow)
+void draw_cell(Cell *k, CellCharge v, bool slow)
 {
     if (v == EMPTY)
         return;
@@ -264,7 +264,7 @@ void undraw_cell(Cell *k, bool slow)
 }
 
 
-void assign_cell(Puzzle *p, int i, Cell *k, PCellValue v)
+void assign_cell(Puzzle *p, int i, Cell *k, CellCharge v)
 {
     ++p->n_assigned;
     p->assigned[i] = true;
@@ -340,7 +340,7 @@ void unassign_cell(Puzzle *p, int i, Cell *k)
 }
 
 
-bool check_neighbors(Puzzle *p, Cell *c, PCellValue v)
+bool check_neighbors(Puzzle *p, Cell *c, CellCharge v)
 {
     // always compatible
     if (v == EMPTY)
@@ -372,7 +372,7 @@ bool check_neighbors(Puzzle *p, Cell *c, PCellValue v)
 }
 
 
-bool is_safe(Puzzle *p, Cell *c, PCellValue v)
+bool is_safe(Puzzle *p, Cell *c, CellCharge v)
 {
     if (c->type != TOP && c->type != LEFT)
     {
@@ -670,7 +670,7 @@ bool r_backtrack(Puzzle *p, int i)
     }
 
     Cell *cell = get_next_cell(p, &i);
-    PCellValue val;
+    CellCharge val;
 
     // printf("Seeking assignation for cell (%d, %d)\n", cell->i, cell->j);
 
