@@ -414,6 +414,8 @@ bool is_safe(Puzzle *p, Cell *c, CellCharge v)
 
     // printf("Cell with value '%c', other cell with value '%c'.\n", cval_to_char(v), cval_to_char(-v));
 
+    consistent = consistent && prune_sufficient(p, c, v);
+
     if (!consistent)
         return consistent;
 
@@ -860,4 +862,82 @@ void print_puzzle(Puzzle *p)
         }
         printf("\n");
     }
+}
+
+
+/**
+ * Sufficient prune strategy:
+ * If a row/column has x remaining +/- cells to fill due to constraint. Then,
+ * if x is less than 0 or is larger than the number of remaining cells in the
+ * row/column, we know that it will not fulfill the constraint in the future.
+ *
+ * @param p: Puzzle
+ * @param c: Cell
+ * @param v: Cell charge to fill
+ * @return: whether if this option should be pruned
+ */
+bool prune_sufficient(Puzzle *p, Cell *c, CellCharge v)
+{
+    // need to check consistency of cell c and its other magnet end
+    bool consistent = true;
+    int row_remain_0, col_remain_0, row_remain_1, col_remain_1, to_fill_0, to_fill_1;
+
+    Cell *o = get_opposite(p, c);
+
+    // each row has c components!
+    row_remain_0 = p->c - p->counter[0][c->i] - 1;
+    col_remain_0 = p->r - p->counter[1][c->j] - 1;
+    row_remain_1 = p->c - p->counter[0][o->i] - 1;
+    col_remain_1 = p->r - p->counter[1][o->j] - 1;
+
+    // either row or column
+    int line;
+    // either row remain or column remain
+    int line_remain;
+
+    for (int i = 0; i < 4; ++i)
+    {
+        line = i < 2 ? c->i : c->j;
+        line_remain = i < 2 ? row_remain_0 : col_remain_0;
+
+        if (p->constraints[i][line] <= 0 || !consistent)
+            continue;
+
+        to_fill_0 = p->constraints[i][line] - p->charge[i][line];
+
+        if (i % 2 == 0 && v == POSITIVE)
+        {
+            --to_fill_0;
+        }
+        else if (i % 2 == 1 && v == NEGATIVE)
+        {
+            --to_fill_0;
+        }
+
+        consistent = consistent && 0 <= to_fill_0 && to_fill_0 <= line_remain;
+    }
+
+    for (int i = 0; i < 4; ++i)
+    {
+        line = i < 2 ? o->i : o->j;
+        line_remain = i < 2 ? row_remain_1 : col_remain_1;
+
+        if (p->constraints[i][line] <= 0 || !consistent)
+            continue;
+
+        to_fill_1 = p->constraints[i][line] - p->charge[i][line];
+
+        if (i % 2 == 0 && v == NEGATIVE)
+        {
+            --to_fill_1;
+        }
+        else if (i % 2 == 1 && v == POSITIVE)
+        {
+            --to_fill_1;
+        }
+
+        consistent = consistent && 0 <= to_fill_1 && to_fill_1 <= line_remain;
+    }
+
+    return consistent;
 }

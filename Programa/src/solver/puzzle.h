@@ -10,6 +10,14 @@ typedef struct cellvalue CellValue;
 typedef struct cell Cell;
 typedef struct puzzle Puzzle;
 
+
+typedef enum
+{
+    NONE,
+    SUFFICIENT
+}PruneStrategy;
+
+
 typedef enum
 {
     EMPTY = 0,
@@ -84,3 +92,6 @@ bool backtrack(Puzzle *p);
 bool assert_puzzle(Puzzle *p);
 void draw_puzzle(Puzzle *p);
 void print_puzzle(Puzzle *p);
+
+// prune strategies
+bool prune_sufficient(Puzzle *p, Cell *c, CellCharge v);
