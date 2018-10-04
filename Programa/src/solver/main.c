@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
 
     // draw_puzzle(puzzle);
 
-    sleep(10);
+    sleep(1);
 
     if (assert_puzzle(puzzle))
         printf("Puzzle done!\n");
