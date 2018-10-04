@@ -1,2 +1,2 @@
-Command: ./solver ./tests/test_02.txt
+Command: ./Programa/solver ./Programa/tests/test_02.txt
 [mm:ss.ms]: 0:00.00

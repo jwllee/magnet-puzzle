@@ -1,3 +1,2 @@
-Command terminated by signal 2
-Command: ./solver ./tests/test_06.txt
-[mm:ss.ms]: 0:39.61
+Command: ./Programa/solver ./Programa/tests/test_06.txt
+[mm:ss.ms]: 1:57.53
