@@ -71,6 +71,10 @@ struct puzzle
     Cell **cells;
     bool * assigned;
     int n_assigned;
+
+    // statistics
+    int n_set;
+    int n_unset;
 };
 
 CellValue * cvalue_init(CellCharge v);

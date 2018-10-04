@@ -85,6 +85,8 @@ Puzzle * puzzle_init(int r, int c, char **b, int *p[4], bool slow, PruneStrategy
     puzzle->c = c;
     puzzle->ps = ps;
     puzzle->slow = slow;
+    puzzle->n_set = 0;
+    puzzle->n_unset = 0;
 
     // r rows where each row has c components
     puzzle->n_assigned = 0;
@@ -274,6 +276,7 @@ void undraw_cell(Cell *k, bool slow)
 
 void assign_cell(Puzzle *p, int i, Cell *k, CellCharge v)
 {
+    ++p->n_set;
     ++p->n_assigned;
     p->assigned[i] = true;
 
@@ -314,6 +317,7 @@ void assign_cell(Puzzle *p, int i, Cell *k, CellCharge v)
 
 void unassign_cell(Puzzle *p, int i, Cell *k)
 {
+    ++p->n_unset;
     --p->n_assigned;
     p->assigned[i] = false;
 

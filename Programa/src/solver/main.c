@@ -74,6 +74,9 @@ int main(int argc, char *argv[])
         sleep(5);
     }
 
+    printf("Number of assignment: %d\n", puzzle->n_set);
+    printf("Number of unassignment: %d\n", puzzle->n_unset);
+
     if (assert_puzzle(puzzle))
         printf("Puzzle done!\n");
     else
