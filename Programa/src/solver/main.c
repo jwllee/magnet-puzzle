@@ -28,7 +28,8 @@ int main(int argc, char *argv[])
 	fscanf(data, "%d %d", &c, &r);
 
     // read constraints
-    int *constraints[4];
+    int *constraints[4], total_constr = 0;
+    int total_constr_r = 0, total_constr_c = 0, total_constr_p = 0, total_constr_n = 0;
     constraints[0] = malloc(r * sizeof(int));
     constraints[1] = malloc(r * sizeof(int));
     constraints[2] = malloc(c * sizeof(int));
@@ -37,15 +38,35 @@ int main(int argc, char *argv[])
     // read column constraints
     // positive then negative
     for (int i = 0; i < c; ++i)
+    {
         fscanf(data, " %d ", &constraints[2][i]);
+        total_constr += constraints[2][i];
+        total_constr_c += constraints[2][i];
+        total_constr_p += constraints[2][i];
+    }
     for (int i = 0; i < c; ++i)
+    {
         fscanf(data, " %d ", &constraints[3][i]);
+        total_constr += constraints[3][i];
+        total_constr_c += constraints[3][i];
+        total_constr_n += constraints[3][i];
+    }
 
     // row constraints
     for (int i = 0; i < r; ++i)
+    {
         fscanf(data, " %d ", &constraints[0][i]);
+        total_constr += constraints[0][i];
+        total_constr_r += constraints[0][i];
+        total_constr_p += constraints[0][i];
+    }
     for (int i = 0; i < r; ++i)
+    {
         fscanf(data, " %d ", &constraints[1][i]);
+        total_constr += constraints[1][i];
+        total_constr_r += constraints[1][i];
+        total_constr_n += constraints[1][i];
+    }
 
     // read the board
     char **board = malloc(r * sizeof(char *));
@@ -74,6 +95,13 @@ int main(int argc, char *argv[])
         sleep(5);
     }
 
+    printf("Filename: %s\n", argv[1]);
+    printf("Board dimension: %d x %d = %d\n", r, c, r * c);
+    printf("Total constraint: %d\n", total_constr);
+    printf("Constraint row: %d\n", total_constr_r);
+    printf("Constraint col: %d\n", total_constr_c);
+    printf("Constraint +: %d\n", total_constr_p);
+    printf("Constraint -: %d\n", total_constr_n);
     printf("Number of assignment: %d\n", puzzle->n_set);
     printf("Number of unassignment: %d\n", puzzle->n_unset);
 
