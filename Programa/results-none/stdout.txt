@@ -1,0 +1,18 @@
+Number of assignment: 5
+Number of unassignment: 2
+Puzzle done!
+Number of assignment: 340
+Number of unassignment: 325
+Puzzle done!
+Number of assignment: 448
+Number of unassignment: 433
+Puzzle done!
+Number of assignment: 19
+Number of unassignment: 4
+Puzzle done!
+Number of assignment: 1118936
+Number of unassignment: 1118936
+Puzzle not solved.
+Number of assignment: 79
+Number of unassignment: 14
+Puzzle done!

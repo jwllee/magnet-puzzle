@@ -1,0 +1,10 @@
+E E P 
+N P N 
+P N P 
+N P N 
+P N P 
+E E N 
+E N P 
+E P N 
+E N P 
+E P N 
