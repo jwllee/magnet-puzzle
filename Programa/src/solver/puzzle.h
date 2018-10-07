@@ -56,6 +56,7 @@ struct cell
 struct puzzle
 {
     bool slow;
+    PruneStrategy ps;
     // row (+, -), col (+, -)
     int *constraints[4];
 
@@ -74,7 +75,7 @@ struct puzzle
 
 CellValue * cvalue_init(CellCharge v);
 Cell * cell_init(int i, int j, CellOrient t);
-Puzzle * puzzle_init(int r, int c, char **b, int *p[4], bool slow);
+Puzzle * puzzle_init(int r, int c, char **b, int *p[4], bool slow, PruneStrategy ps);
 
 void cvalue_destroy(CellValue *v);
 void cell_destroy(Cell *c);
