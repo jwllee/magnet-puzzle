@@ -900,7 +900,10 @@ bool prune_sufficient(Puzzle *p, Cell *c, CellCharge v)
         line = i < 2 ? c->i : c->j;
         line_remain = i < 2 ? row_remain_0 : col_remain_0;
 
-        if (p->constraints[i][line] <= 0 || !consistent)
+        if (!consistent)
+            break;
+
+        if (p->constraints[i][line] <= 0)
             continue;
 
         to_fill_0 = p->constraints[i][line] - p->charge[i][line];
@@ -922,7 +925,10 @@ bool prune_sufficient(Puzzle *p, Cell *c, CellCharge v)
         line = i < 2 ? o->i : o->j;
         line_remain = i < 2 ? row_remain_1 : col_remain_1;
 
-        if (p->constraints[i][line] <= 0 || !consistent)
+        if (!consistent)
+            break;
+
+        if (p->constraints[i][line] <= 0)
             continue;
 
         to_fill_1 = p->constraints[i][line] - p->charge[i][line];
