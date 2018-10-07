@@ -28,6 +28,7 @@ Cell * cell_init(int i, int j, CellOrient t)
     cell->priority = 0;
     cell->type = t;
     cell->value = EMPTY;
+    cell->assigned = false;
 
     cell->n_values = 3;
     cell->values = malloc(cell->n_values * sizeof(CellValue *));
@@ -296,6 +297,10 @@ void assign_cell(Puzzle *p, int i, Cell *k, CellCharge v)
 
     k->value = v;
 
+    // update assigned
+    k->assigned = true;
+    o->assigned = true;
+
     // update the corresponding charge and counter
     p->counter[0][k->i] += 1;
     p->counter[1][k->j] += 1;
@@ -333,6 +338,9 @@ void unassign_cell(Puzzle *p, int i, Cell *k)
     p->assigned[i] = false;
 
     Cell *o = get_opposite(p, k);
+
+    k->assigned = false;
+    o->assigned = false;
 
     p->counter[0][k->i] -= 1;
     p->counter[1][k->j] -= 1;
@@ -415,6 +423,7 @@ bool is_safe(Puzzle *p, Cell *c, CellCharge v)
     // printf("Cell with value '%c', other cell with value '%c'.\n", cval_to_char(v), cval_to_char(-v));
 
     consistent = consistent && prune_sufficient(p, c, v);
+    consistent = consistent && prune_feasible(p, c, v);
 
     if (!consistent)
         return consistent;
@@ -862,6 +871,219 @@ void print_puzzle(Puzzle *p)
         }
         printf("\n");
     }
+}
+
+
+/**
+ * Count the remaining specified charges on the cell's row and column, assuming
+ * that the cell is going to be assigned with a specified charge.
+ *
+ * @param p
+ * @param c
+ * @param v
+ * @param vertical
+ * @param m
+ * @param n
+ * @param ask
+ * @return
+ */
+void get_remaining(Puzzle *p, Cell *c, CellCharge v, int *m, int *n, CellCharge ask)
+{
+    Cell *d;
+    int start = -1, end = -1, interval;
+    // CellCharge last_c = EMPTY, start_c, end_c;
+    // whether to evaluate the interval
+    bool evaluate;
+    bool neighbor;
+    int space = 0;
+
+    *m = 0;
+    *n = 0;
+
+    // count row
+    for (int s = 0; s < p->c; ++s)
+    {
+        d = p->board[c->i][s];
+        if (c->type == TOP || c->type == BOTTOM)
+        {
+            neighbor = s == c->i - 1 || s == c->i + 1;
+        }
+        else
+        {
+            neighbor = s == c->i - 1 || s == c->i + 2;
+        }
+
+        evaluate = neighbor;
+        evaluate = (d->assigned || s == c->j) || evaluate;
+        // last cell
+        evaluate = s == p->c - 1 || evaluate;
+
+        if (!evaluate || s == 0)
+        {
+            if (start == -1)
+            {
+                start = s;
+                end = start + 1;
+            }
+            else
+            {
+                end = s + 1;
+            }
+        }
+        else
+        {
+            // evaluate the interval
+            interval = end - start;
+
+            if (interval > 0)
+            {
+                // an odd sized space would fit 1 more charge
+                space = interval % 2 == 0 ? interval / 2 : interval / 2 + 1;
+            }
+            else
+            {
+                space = 0;
+            }
+
+            *m += space;
+
+            // reset start
+            start = -1;
+        }
+    }
+
+    // count column
+    for (int s = 0; s < p->r; ++s)
+    {
+        d = p->board[s][c->j];
+        if (c->type == LEFT || c->type == RIGHT)
+        {
+            neighbor = s == c->j - 1 || s == c->j + 1;
+        }
+        else
+        {
+            // we are sure that the other half is opposite charge
+            neighbor = s == c->j - 1 || s == c->j + 2;
+        }
+
+        evaluate = neighbor;
+        evaluate = (d->assigned || s == c->j) || evaluate;
+        // last cell
+        evaluate = s == p->r - 1 || evaluate;
+
+        if (!evaluate || s == 0)
+        {
+            if (start == -1)
+            {
+                start = s;
+                end = start + 1;
+            }
+            else
+            {
+                end = s + 1;
+            }
+        }
+        else
+        {
+            // evaluate the interval
+            interval = end - start;
+
+            if (interval > 0)
+            {
+                // an odd sized space would fit 1 more charge
+                space = interval % 2 == 0 ? interval / 2 : interval / 2 + 1;
+            }
+            else
+            {
+                space = 0;
+            }
+
+            *n += space;
+
+            // reset start
+            start = -1;
+        }
+    }
+}
+
+
+bool prune_feasible(Puzzle *p, Cell *c, CellCharge v)
+{
+    bool consistent = true;
+    Cell *o = get_opposite(p, c);
+
+    // either row remain or column remain
+    int row_remain = 0, col_remain = 0;
+    int to_fill_r, to_fill_c;
+    CellCharge ask;
+
+    for (int i = 0; i < 2; i++)
+    {
+        ask = i % 2 == 0 ? POSITIVE : NEGATIVE;
+
+        if (!consistent)
+            break;
+
+        get_remaining(p, c, v, &row_remain, &col_remain, ask);
+
+        to_fill_r = p->constraints[i][c->i] - p->charge[i][c->i];
+        to_fill_c = p->constraints[i + 2][c->j] - p->charge[i + 2][c->j];
+
+        if (i % 2 == 0 && v == POSITIVE)
+        {
+            --to_fill_r;
+            --to_fill_c;
+        }
+        else if (i % 2 == 1 && v == NEGATIVE)
+        {
+            --to_fill_r;
+            --to_fill_c;
+        }
+
+        if (p->constraints[i][c->i] > 0)
+        {
+            consistent = consistent && 0 <= to_fill_r && to_fill_r <= row_remain;
+        }
+        if (p->constraints[i][c->j] > 0)
+        {
+            consistent = consistent && 0 <= to_fill_c && to_fill_c <= col_remain;
+        }
+    }
+
+    for (int i = 0; i < 2; i++)
+    {
+        ask = i % 2 == 0 ? POSITIVE : NEGATIVE;
+
+        if (!consistent)
+            break;
+
+        get_remaining(p, o, -v, &row_remain, &col_remain, ask);
+
+        to_fill_r = p->constraints[i][o->i] - p->charge[i][o->i];
+        to_fill_c = p->constraints[i + 2][o->j] - p->charge[i + 2][o->j];
+
+        if (i % 2 == 0 && v == NEGATIVE)
+        {
+            --to_fill_r;
+            --to_fill_c;
+        }
+        else if (i % 2 == 1 && v == POSITIVE)
+        {
+            --to_fill_r;
+            --to_fill_c;
+        }
+
+        if (p->constraints[i][o->i] > 0)
+        {
+            consistent = consistent && 0 <= to_fill_r && to_fill_r <= row_remain;
+        }
+        if (p->constraints[i][o->j] > 0)
+        {
+            consistent = consistent && 0 <= to_fill_c && to_fill_c <= col_remain;
+        }
+    }
+
+    return consistent;
 }
 
 

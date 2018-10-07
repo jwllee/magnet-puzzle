@@ -50,6 +50,7 @@ struct cell
 
     int n_values;
     CellValue **values;
+    bool assigned;
 };
 
 
@@ -95,3 +96,4 @@ void print_puzzle(Puzzle *p);
 
 // prune strategies
 bool prune_sufficient(Puzzle *p, Cell *c, CellCharge v);
+bool prune_feasible(Puzzle *p, Cell *c, CellCharge v);
