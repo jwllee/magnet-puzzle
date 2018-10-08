@@ -417,12 +417,12 @@ bool is_safe(Puzzle *p, Cell *c, CellCharge v)
 
     Cell *o = get_opposite(p, c);
 
-    consistent = consistent && check_neighbors(p, c, v);
-    consistent = consistent && check_neighbors(p, o, -v);
+    consistent = consistent ? consistent && check_neighbors(p, c, v) : consistent;
+    consistent = consistent ? consistent && check_neighbors(p, o, -v) : consistent;
 
     // printf("Cell with value '%c', other cell with value '%c'.\n", get_cell_charge(v), get_cell_charge(-v));
 
-    consistent = consistent && apply_prune_strategy(p, c, v);
+    consistent = consistent ? consistent && apply_prune_strategy(p, c, v) : consistent;
 
     // each row has c components!
     row_remain_0 = p->c - p->counter[0][c->i];
