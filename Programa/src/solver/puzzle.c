@@ -31,8 +31,8 @@ Cell * cell_init(int i, int j, CellOrient t)
 
     cell->n_values = 3;
     cell->values = malloc(cell->n_values * sizeof(CellValue *));
-    cell->values[0] = cvalue_init(POSITIVE);
-    cell->values[1] = cvalue_init(EMPTY);
+    cell->values[0] = cvalue_init(EMPTY);
+    cell->values[1] = cvalue_init(POSITIVE);
     cell->values[2] = cvalue_init(NEGATIVE);
 
     return cell;
