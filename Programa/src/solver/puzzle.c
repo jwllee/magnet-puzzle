@@ -32,8 +32,8 @@ Cell * cell_init(int i, int j, CellOrient t)
 
     cell->n_values = 3;
     cell->values = malloc(cell->n_values * sizeof(CellValue *));
-    cell->values[0] = cvalue_init(POSITIVE);
-    cell->values[1] = cvalue_init(EMPTY);
+    cell->values[0] = cvalue_init(EMPTY);
+    cell->values[1] = cvalue_init(POSITIVE);
     cell->values[2] = cvalue_init(NEGATIVE);
 
     return cell;
@@ -79,11 +79,12 @@ void set_cell_priority(Puzzle *p, Cell **cells, int n, int *priority[4])
 }
 
 
-Puzzle * puzzle_init(int r, int c, char **b, int *p[4], bool slow)
+Puzzle * puzzle_init(int r, int c, char **b, int *p[4], bool slow, PruneStrategy ps)
 {
     Puzzle * puzzle = malloc(sizeof(Puzzle));
     puzzle->r = r;
     puzzle->c = c;
+    puzzle->ps = ps;
     puzzle->slow = slow;
 
     // r rows where each row has c components
@@ -129,24 +130,18 @@ Puzzle * puzzle_init(int r, int c, char **b, int *p[4], bool slow)
     sort_cells(puzzle->cells, 0, cnt, false);
 
     // initiate variables
+    int sz;
+
     for (int i = 0; i < 4; ++i)
     {
-        if (i < 2)
-        {
-            puzzle->constraints[i] = malloc(r * sizeof(int));
-            puzzle->charge[i] = malloc(r * sizeof(int));
+        // either row or column
+        sz = i < 2 ? r : c;
 
-            // copy the row constraints
-            memcpy(puzzle->constraints[i], p[i], r * sizeof(int));
-        }
-        else
-        {
-            puzzle->constraints[i] = malloc(c * sizeof(int));
-            puzzle->charge[i] = malloc(c * sizeof(int));
+        puzzle->constraints[i] = malloc(sz * sizeof(int));
+        puzzle->charge[i] = malloc(sz * sizeof(int));
 
-            // copy the column constraints
-            memcpy(puzzle->constraints[i], p[i], c * sizeof(int));
-        }
+        // copy the row constraints
+        memcpy(puzzle->constraints[i], p[i], sz * sizeof(int));
     }
 
     puzzle->counter[0] = malloc(r * sizeof(int));
@@ -223,44 +218,34 @@ Cell * get_opposite(Puzzle *p, Cell *c)
 {
     int i, j;
 
-    if (c->type == TOP)
+    switch (c->type)
     {
-        i = c->i + 1;
-        j = c->j;
-    }
-    else if (c->type == BOTTOM)
-    {
-        i = c->i - 1;
-        j = c->j;
-    }
-    else if (c->type == LEFT)
-    {
-        i = c->i;
-        j = c->j + 1;
-    }
-    else if (c->type == RIGHT)
-    {
-        i = c->i;
-        j = c->j - 1;
-    }
-    else
-    {
-        printf("Do not recognize cell type: %d\n", c->type);
-        return NULL;
+        case TOP:
+            i = c->i + 1;
+            j = c->j;
+            break;
+
+        case BOTTOM:
+            i = c->i - 1;
+            j = c->j;
+            break;
+
+        case LEFT:
+            i = c->i;
+            j = c->j + 1;
+            break;
+
+        case RIGHT:
+            i = c->i;
+            j = c->j - 1;
+            break;
+
+        default:
+            printf("Do not recognize cell type: %d\n", c->type);
+            return NULL;
     }
 
     return p->board[i][j];
-}
-
-
-char cval_to_char(CellCharge v)
-{
-    if (v == NEGATIVE)
-        return 'N';
-    else if (v == EMPTY)
-        return 'E';
-    else
-        return 'P';
 }
 
 
@@ -381,12 +366,12 @@ bool check_neighbors(Puzzle *p, Cell *c, CellCharge v)
     bool safe = true;
 
     // left cell or it's already at the border
-    // printf("Cell value: '%c'.\n", cval_to_char(v));
+    // printf("Cell value: '%c'.\n", get_cell_charge(v));
     // if (j > 0)
     // {
-    //     printf("Left cell has value: '%c'.\n", cval_to_char(p->board[i][j - 1]->value));
-    //     printf("'%c' == '%c': %s\n", cval_to_char(p->board[i][j - 1]->value),
-    //                                  cval_to_char(v), v == p->board[i][j - 1]->value ? "true" : "false");
+    //     printf("Left cell has value: '%c'.\n", get_cell_charge(p->board[i][j - 1]->value));
+    //     printf("'%c' == '%c': %s\n", get_cell_charge(p->board[i][j - 1]->value),
+    //                                  get_cell_charge(v), v == p->board[i][j - 1]->value ? "true" : "false");
     // }
 
     safe = safe && (j <= 0 || p->board[i][j - 1]->value != v);
@@ -400,6 +385,21 @@ bool check_neighbors(Puzzle *p, Cell *c, CellCharge v)
     // printf("Safe: %s\n", safe ? "true" : "false");
 
     return safe;
+}
+
+
+bool apply_prune_strategy(Puzzle *p, Cell *c, CellCharge v)
+{
+    switch (p->ps)
+    {
+        case NONE:
+            return true;
+        case SUFFICIENT:
+            return prune_sufficient(p, c, v);
+        default:
+            printf("Do not recognize prune strategy: %s", get_prune_strategy(p->ps));
+            return true;
+    }
 }
 
 
@@ -420,13 +420,9 @@ bool is_safe(Puzzle *p, Cell *c, CellCharge v)
     consistent = consistent && check_neighbors(p, c, v);
     consistent = consistent && check_neighbors(p, o, -v);
 
-    // printf("Cell with value '%c', other cell with value '%c'.\n", cval_to_char(v), cval_to_char(-v));
+    // printf("Cell with value '%c', other cell with value '%c'.\n", get_cell_charge(v), get_cell_charge(-v));
 
-    consistent = consistent && prune_sufficient(p, c, v);
-    consistent = consistent && prune_feasible(p, c, v);
-
-    if (!consistent)
-        return consistent;
+    consistent = consistent && apply_prune_strategy(p, c, v);
 
     // each row has c components!
     row_remain_0 = p->c - p->counter[0][c->i];
@@ -440,214 +436,190 @@ bool is_safe(Puzzle *p, Cell *c, CellCharge v)
     is_last_cell_c_1 = (c->type == TOP && col_remain_1 == 2) || (c->type == LEFT && col_remain_1 == 1);
 
     // checking row positive constraint if necessary
-    if (p->constraints[0][c->i] > 0 && consistent)
+    if (is_last_cell_r_0 && p->constraints[0][c->i] > 0 && consistent)
     {
         to_fill_0 = p->constraints[0][c->i] - p->charge[0][c->i];
 
-        if (is_last_cell_r_0)
+        // assignment needs to match what is missing from this row
+        if (c->type == TOP)
         {
-            // assignment needs to match what is missing from this row
-            if (c->type == TOP)
+            if (v == EMPTY || v == NEGATIVE)
             {
-                if (v == EMPTY || v == NEGATIVE)
-                {
-                    consistent = consistent && to_fill_0 == 0;
-                }
-                else if (v == POSITIVE)
-                {
-                    consistent = consistent && to_fill_0 == 1;
-                }
+                consistent = consistent && to_fill_0 == 0;
             }
-            else // LEFT
+            else if (v == POSITIVE)
             {
-                if (v == EMPTY)
-                {
-                    consistent = consistent && to_fill_0 == 0;
-                }
-                else if (v == POSITIVE || v == NEGATIVE)
-                {
-                    consistent = consistent && to_fill_0 == 1;
-                }
+                consistent = consistent && to_fill_0 == 1;
+            }
+        }
+        else // LEFT
+        {
+            if (v == EMPTY)
+            {
+                consistent = consistent && to_fill_0 == 0;
+            }
+            else if (v == POSITIVE || v == NEGATIVE)
+            {
+                consistent = consistent && to_fill_0 == 1;
             }
         }
     }
 
-    if (p->constraints[0][o->i] > 0 && consistent)
+    if (is_last_cell_r_1 && p->constraints[0][o->i] > 0 && consistent)
     {
         to_fill_1 = p->constraints[0][o->i] - p->charge[0][o->i];
 
-        if (is_last_cell_r_1)
+        // v == POSITIVE means that its counterpart is NEGATIVE
+        // if counterpart is empty or negative, then there should be 0 positive to fill in its row
+        if (c->type == TOP)
         {
-            // v == POSITIVE means that its counterpart is NEGATIVE
-            // if counterpart is empty or negative, then there should be 0 positive to fill in its row
-            if (c->type == TOP)
+            if (v == EMPTY || v == POSITIVE)
             {
-                if (v == EMPTY || v == POSITIVE)
-                {
-                    consistent = consistent && to_fill_1 == 0;
-                }
-                else if (v == NEGATIVE)
-                {
-                    consistent = consistent && to_fill_1 == 1;
-                }
+                consistent = consistent && to_fill_1 == 0;
             }
-            // LEFT already checked above at its counterpart which is on the same row
+            else if (v == NEGATIVE)
+            {
+                consistent = consistent && to_fill_1 == 1;
+            }
         }
+        // LEFT already checked above at its counterpart which is on the same row
     }
 
     // checking row negative constraint if necessary
-    if (p->constraints[1][c->i] > 0 && consistent)
+    if (is_last_cell_r_0 && p->constraints[1][c->i] > 0 && consistent)
     {
         to_fill_0 = p->constraints[1][c->i] - p->charge[1][c->i];
 
-        if (is_last_cell_r_0)
+        if (c->type == TOP)
         {
-            if (c->type == TOP)
+            if (v == EMPTY || v == POSITIVE)
             {
-                if (v == EMPTY || v == POSITIVE)
-                {
-                    consistent = consistent && to_fill_0 == 0;
-                }
-                else if (v == NEGATIVE)
-                {
-                    consistent = consistent && to_fill_0 == 1;
-                }
+                consistent = consistent && to_fill_0 == 0;
             }
-            else // LEFT
+            else if (v == NEGATIVE)
             {
-                if (v == EMPTY)
-                {
-                    consistent = consistent && to_fill_0 == 0;
-                }
-                else if (v == POSITIVE || v == NEGATIVE)
-                {
-                    consistent = consistent && to_fill_0 == 1;
-                }
+                consistent = consistent && to_fill_0 == 1;
+            }
+        }
+        else // LEFT
+        {
+            if (v == EMPTY)
+            {
+                consistent = consistent && to_fill_0 == 0;
+            }
+            else if (v == POSITIVE || v == NEGATIVE)
+            {
+                consistent = consistent && to_fill_0 == 1;
             }
         }
     }
 
     // checking row negative constraint
-    if (p->constraints[1][o->i] > 0 && consistent)
+    if (is_last_cell_r_1 && p->constraints[1][o->i] > 0 && consistent)
     {
         to_fill_1 = p->constraints[1][o->i] - p->charge[1][o->i];
 
-        if (is_last_cell_r_1)
+        if (c->type == TOP)
         {
-            if (c->type == TOP)
+            if (v == EMPTY || v == NEGATIVE)
             {
-                if (v == EMPTY || v == NEGATIVE)
-                {
-                    consistent = consistent && to_fill_1 == 0;
-                }
-                else if (v == POSITIVE)
-                {
-                    consistent = consistent && to_fill_1 == 1;
-                }
+                consistent = consistent && to_fill_1 == 0;
+            }
+            else if (v == POSITIVE)
+            {
+                consistent = consistent && to_fill_1 == 1;
             }
         }
     }
 
     // checking column positive constraint if necessary
-    if (p->constraints[2][c->j] > 0 && consistent)
+    if (is_last_cell_c_0 && p->constraints[2][c->j] > 0 && consistent)
     {
         to_fill_0 = p->constraints[2][c->j] - p->charge[2][c->j];
 
-        if (is_last_cell_c_0)
+        if (c->type == TOP)
         {
-            if (c->type == TOP)
+            if (v == EMPTY)
             {
-                if (v == EMPTY)
-                {
-                    consistent = consistent && to_fill_0 == 0;
-                }
-                else if (v == POSITIVE || v == NEGATIVE)
-                {
-                    consistent = consistent && to_fill_0 == 1;
-                }
+                consistent = consistent && to_fill_0 == 0;
             }
-            else
+            else if (v == POSITIVE || v == NEGATIVE)
             {
-                if (v == EMPTY || v == NEGATIVE)
-                {
-                    consistent = consistent && to_fill_0 == 0;
-                }
-                else if (v == POSITIVE)
-                {
-                    consistent = consistent && to_fill_0 == 1;
-                }
+                consistent = consistent && to_fill_0 == 1;
+            }
+        }
+        else
+        {
+            if (v == EMPTY || v == NEGATIVE)
+            {
+                consistent = consistent && to_fill_0 == 0;
+            }
+            else if (v == POSITIVE)
+            {
+                consistent = consistent && to_fill_0 == 1;
             }
         }
     }
 
-    if (p->constraints[2][o->j] > 0 && consistent)
+    if (is_last_cell_c_1 && p->constraints[2][o->j] > 0 && consistent)
     {
         to_fill_1 = p->constraints[2][o->j] - p->charge[2][o->j];
 
-        if (is_last_cell_c_1)
-        {
-            // if TOP then the two cells will be on the same column which is checked above
-            if (c->type == LEFT){
-                if (v == EMPTY || v == POSITIVE)
-                {
-                    consistent = consistent && to_fill_1 == 0;
-                }
-                else if (v == NEGATIVE)
-                {
-                    consistent = consistent && to_fill_1 == 1;
-                }
+        // if TOP then the two cells will be on the same column which is checked above
+        if (c->type == LEFT){
+            if (v == EMPTY || v == POSITIVE)
+            {
+                consistent = consistent && to_fill_1 == 0;
+            }
+            else if (v == NEGATIVE)
+            {
+                consistent = consistent && to_fill_1 == 1;
             }
         }
     }
 
     // checking column negative constraint if necessary
-    if (p->constraints[3][c->j] > 0 && consistent)
+    if (is_last_cell_c_0 && p->constraints[3][c->j] > 0 && consistent)
     {
         to_fill_0 = p->constraints[3][c->j] - p->charge[3][c->j];
 
-        if (is_last_cell_c_0)
+        if (c->type == TOP)
         {
-            if (c->type == TOP)
+            if (v == EMPTY)
             {
-                if (v == EMPTY)
-                {
-                    consistent = consistent && to_fill_0 == 0;
-                }
-                else if (v == POSITIVE || v == NEGATIVE)
-                {
-                    consistent = consistent && to_fill_0 == 1;
-                }
+                consistent = consistent && to_fill_0 == 0;
             }
-            else
+            else if (v == POSITIVE || v == NEGATIVE)
             {
-                if (v == EMPTY || v == POSITIVE)
-                {
-                    consistent = consistent && to_fill_0 == 0;
-                }
-                else if (v == NEGATIVE)
-                {
-                    consistent = consistent && to_fill_0 == 1;
-                }
+                consistent = consistent && to_fill_0 == 1;
+            }
+        }
+        else
+        {
+            if (v == EMPTY || v == POSITIVE)
+            {
+                consistent = consistent && to_fill_0 == 0;
+            }
+            else if (v == NEGATIVE)
+            {
+                consistent = consistent && to_fill_0 == 1;
             }
         }
     }
 
-    if (p->constraints[3][o->j] > 0 && consistent)
+    if (is_last_cell_c_1 && p->constraints[3][o->j] > 0 && consistent)
     {
         to_fill_1 = p->constraints[3][o->j] - p->charge[3][o->j];
 
-        if (is_last_cell_c_1)
+        if (c->type == LEFT)
         {
-            if (c->type == LEFT)
+            if (v == EMPTY || v == NEGATIVE)
             {
-                if (v == EMPTY || v == NEGATIVE)
-                {
-                    consistent = consistent && to_fill_1 == 0;
-                }
-                else if (v == POSITIVE)
-                {
-                    consistent = consistent && to_fill_1 == 1;
-                }
+                consistent = consistent && to_fill_1 == 0;
+            }
+            else if (v == POSITIVE)
+            {
+                consistent = consistent && to_fill_1 == 1;
             }
         }
     }
@@ -709,26 +681,25 @@ bool r_backtrack(Puzzle *p, int i)
 
     // printf("Seeking assignation for cell (%d, %d)\n", cell->i, cell->j);
 
-    // for (charge = NEGATIVE; charge <= POSITIVE; ++charge)
     for (int k = 0; k < cell->n_values; ++k)
     {
         val = cell->values[k];
         charge = val->value;
 
-        // printf("Check safety of value '%c' for cell (%d, %d)\n", cval_to_char(val), cell->i, cell->j);
+        // printf("Check safety of value '%c' for cell (%d, %d)\n", get_cell_charge(val), cell->i, cell->j);
 
         if (!is_safe(p, cell, charge))
             continue;
 
         assign_cell(p, i, cell, charge);
 
-        // printf("Assigned cell (%d, %d) with value '%c'.\n", cell->i, cell->j, cval_to_char(val));
+        // printf("Assigned cell (%d, %d) with value '%c'.\n", cell->i, cell->j, get_cell_charge(val));
         // print_puzzle(p);
 
         if (r_backtrack(p, i + 1))
             return true;
 
-        // printf("Unassigned cell (%d, %d) with value '%c'.\n", cell->i, cell->j, cval_to_char(val));
+        // printf("Unassigned cell (%d, %d) with value '%c'.\n", cell->i, cell->j, get_cell_charge(val));
         unassign_cell(p, i, cell);
     }
 
@@ -756,23 +727,18 @@ bool assert_puzzle(Puzzle *p)
 {
     bool done = true;
 
-    for (int i = 0; i < 2; ++i)
-    {
-        for (int j = 0; j < p->r; ++j)
-        {
-            if (is_violating(p->constraints[i][j], p->charge[i][j]))
-                printf("Row %d violation: %d < %d\n", j, p->constraints[i][j], p->charge[i][j]);
-            else
-                done = done && is_fulfilled(p->constraints[i][j], p->charge[i][j]);
-        }
-    }
+    int sz;
+    char *orient;
 
-    for (int i = 2; i < 4; ++i)
+    for (int i = 0; i < 4; ++i)
     {
-        for (int j = 0; j < p->c; ++j)
+        sz = i < 2 ? p->r : p->c;
+        orient = i < 2 ? "Row" : "Col";
+
+        for (int j = 0; j < sz; ++j)
         {
             if (is_violating(p->constraints[i][j], p->charge[i][j]))
-                printf("Col %d violation: %d < %d\n", i, p->constraints[i][j], p->charge[i][j]);
+                printf("%s %d violation: %d < %d.\n", orient, j, p->constraints[i][j], p->charge[i][j]);
             else
                 done = done && is_fulfilled(p->constraints[i][j], p->charge[i][j]);
         }
@@ -867,7 +833,7 @@ void print_puzzle(Puzzle *p)
     {
         for (int j = 0; j < p->c; ++j)
         {
-            printf("%c ", cval_to_char(p->board[i][j]->value));
+            printf("%s ", get_cell_charge(p->board[i][j]->value));
         }
         printf("\n");
     }
