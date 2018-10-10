@@ -909,7 +909,7 @@ void get_remaining(Puzzle *p, Cell *c, CellCharge v, int *m, int *n)
         // - d is assigned and therefore cannot hold charge v
         // - we are at the last cell of the column
         // - d cannot hold charge v due to its neighbor charges
-        evaluate = d->assigned || s == p->c - 1 || !check_neighbors(p, d, v);
+        evaluate = d->assigned || s == p->r - 1 || !check_neighbors(p, d, v);
 
         if (evaluate)
         {
@@ -931,6 +931,7 @@ void get_remaining(Puzzle *p, Cell *c, CellCharge v, int *m, int *n)
 
 bool prune_feasible(Puzzle *p, Cell *c, CellCharge v)
 {
+    // printf("i: %d, j: %d, v: %d\n", c->i, c->j, v);
     bool consistent = true;
     Cell *o = get_opposite(p, c);
 
