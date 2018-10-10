@@ -14,6 +14,7 @@ add_subdirectory(src/solver)
 # test files
 add_executable(test-simple tests/solver/simple.c)
 target_link_libraries(test-simple Solver)
+target_link_libraries(test-simple SolverUtils)
 
 add_executable(test-utils tests/solver/utils.c)
 target_link_libraries(test-utils Solver)
