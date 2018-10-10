@@ -396,6 +396,8 @@ bool apply_prune_strategy(Puzzle *p, Cell *c, CellCharge v)
             return true;
         case SUFFICIENT:
             return prune_sufficient(p, c, v);
+        case FEASIBLE:
+            return prune_feasible(p, c, v);
         default:
             printf("Do not recognize prune strategy: %s", get_prune_strategy(p->ps));
             return true;
@@ -412,12 +414,12 @@ bool is_safe(Puzzle *p, Cell *c, CellCharge v)
     }
 
     // need to check consistency of cell c and its other magnet end
-    bool consistent = true, is_last_cell_r_0, is_last_cell_c_0, is_last_cell_r_1, is_last_cell_c_1;
+    bool consistent, is_last_cell_r_0, is_last_cell_c_0, is_last_cell_r_1, is_last_cell_c_1;
     int row_remain_0, col_remain_0, row_remain_1, col_remain_1, to_fill_0, to_fill_1;
 
     Cell *o = get_opposite(p, c);
 
-    consistent = consistent ? consistent && check_neighbors(p, c, v) : consistent;
+    consistent = check_neighbors(p, c, v);
     consistent = consistent ? consistent && check_neighbors(p, o, -v) : consistent;
 
     // printf("Cell with value '%c', other cell with value '%c'.\n", get_cell_charge(v), get_cell_charge(-v));
@@ -853,15 +855,15 @@ void print_puzzle(Puzzle *p)
  * @param ask
  * @return
  */
-void get_remaining(Puzzle *p, Cell *c, CellCharge v, int *m, int *n, CellCharge ask)
+void get_remaining(Puzzle *p, Cell *c, int *m, int *n)
 {
+    Cell *o = get_opposite(p, c);
+    // for simplicity assign the cell and its connecting cell and then unassign them at the end
+    c->assigned = true;
+    o->assigned = true;
+
     Cell *d;
-    int start = -1, end = -1, interval;
-    // CellCharge last_c = EMPTY, start_c, end_c;
-    // whether to evaluate the interval
-    bool evaluate;
-    bool neighbor;
-    int space = 0;
+    int start = 0, end = 0, interval = 0, space = 0;
 
     *m = 0;
     *n = 0;
@@ -870,106 +872,50 @@ void get_remaining(Puzzle *p, Cell *c, CellCharge v, int *m, int *n, CellCharge 
     for (int s = 0; s < p->c; ++s)
     {
         d = p->board[c->i][s];
-        if (c->type == TOP || c->type == BOTTOM)
-        {
-            neighbor = s == c->i - 1 || s == c->i + 1;
-        }
-        else
-        {
-            neighbor = s == c->i - 1 || s == c->i + 2;
-        }
+        // need to consider the last column if this is the last column and it is unassigned
+        end = !d->assigned && s == p->c - 1 ? s + 1 : s;
 
-        evaluate = neighbor;
-        evaluate = (d->assigned || s == c->j) || evaluate;
-        // last cell
-        evaluate = s == p->c - 1 || evaluate;
-
-        if (!evaluate || s == 0)
+        // evaluate the interval between start and d
+        // we have to evaluate the interval if d is assigned or if this is the last column
+        if (d->assigned || s == p->c - 1)
         {
-            if (start == -1)
+            if (end > start)
             {
-                start = s;
-                end = start + 1;
-            }
-            else
-            {
-                end = s + 1;
-            }
-        }
-        else
-        {
-            // evaluate the interval
-            interval = end - start;
-
-            if (interval > 0)
-            {
-                // an odd sized space would fit 1 more charge
+                // has non-zero interval
+                interval = end - start;
+                // odd space has one more cell for a charge
                 space = interval % 2 == 0 ? interval / 2 : interval / 2 + 1;
-            }
-            else
-            {
-                space = 0;
+                *m += space;
             }
 
-            *m += space;
-
-            // reset start
-            start = -1;
+            // increment start index since s is assigned
+            start = s + 1;
         }
     }
 
     // count column
+    start = 0;
+
     for (int s = 0; s < p->r; ++s)
     {
         d = p->board[s][c->j];
-        if (c->type == LEFT || c->type == RIGHT)
-        {
-            neighbor = s == c->j - 1 || s == c->j + 1;
-        }
-        else
-        {
-            // we are sure that the other half is opposite charge
-            neighbor = s == c->j - 1 || s == c->j + 2;
-        }
+        end = !d->assigned && s == p->r - 1 ? s + 1 : s;
 
-        evaluate = neighbor;
-        evaluate = (d->assigned || s == c->j) || evaluate;
-        // last cell
-        evaluate = s == p->r - 1 || evaluate;
-
-        if (!evaluate || s == 0)
+        if (d->assigned || s == p->r - 1)
         {
-            if (start == -1)
+            if (end > start)
             {
-                start = s;
-                end = start + 1;
-            }
-            else
-            {
-                end = s + 1;
-            }
-        }
-        else
-        {
-            // evaluate the interval
-            interval = end - start;
-
-            if (interval > 0)
-            {
-                // an odd sized space would fit 1 more charge
+                interval = end - start;
                 space = interval % 2 == 0 ? interval / 2 : interval / 2 + 1;
-            }
-            else
-            {
-                space = 0;
+                *n += space;
             }
 
-            *n += space;
-
-            // reset start
-            start = -1;
+            start = s + 1;
         }
     }
+
+    c->assigned = false;
+    o->assigned = false;
 }
 
 
@@ -981,16 +927,13 @@ bool prune_feasible(Puzzle *p, Cell *c, CellCharge v)
     // either row remain or column remain
     int row_remain = 0, col_remain = 0;
     int to_fill_r, to_fill_c;
-    CellCharge ask;
 
-    for (int i = 0; i < 2; i++)
+    for (int i = 0; i < 2; ++i)
     {
-        ask = i % 2 == 0 ? POSITIVE : NEGATIVE;
-
         if (!consistent)
             break;
 
-        get_remaining(p, c, v, &row_remain, &col_remain, ask);
+        get_remaining(p, c, &row_remain, &col_remain);
 
         to_fill_r = p->constraints[i][c->i] - p->charge[i][c->i];
         to_fill_c = p->constraints[i + 2][c->j] - p->charge[i + 2][c->j];
@@ -1006,11 +949,30 @@ bool prune_feasible(Puzzle *p, Cell *c, CellCharge v)
             --to_fill_c;
         }
 
+        if (c->type == TOP)
+        {
+            // if it is a vertical magnet, then the column will get an extra opposite charge
+            // so if the opposite charge is negative and we are evaluating the negative row and columns
+            // to_fill_c should be 1 less
+            if ((v == POSITIVE && i == 1) || (v == NEGATIVE && i == 0))
+            {
+                --to_fill_c;
+            }
+        }
+
+        if (c->type == LEFT)
+        {
+            if ((v == POSITIVE && i == 1) || (v == NEGATIVE && i == 0))
+            {
+                --to_fill_r;
+            }
+        }
+
         if (p->constraints[i][c->i] > 0)
         {
             consistent = consistent && 0 <= to_fill_r && to_fill_r <= row_remain;
         }
-        if (p->constraints[i][c->j] > 0)
+        if (p->constraints[i + 2][c->j] > 0)
         {
             consistent = consistent && 0 <= to_fill_c && to_fill_c <= col_remain;
         }
@@ -1018,12 +980,10 @@ bool prune_feasible(Puzzle *p, Cell *c, CellCharge v)
 
     for (int i = 0; i < 2; i++)
     {
-        ask = i % 2 == 0 ? POSITIVE : NEGATIVE;
-
         if (!consistent)
             break;
 
-        get_remaining(p, o, -v, &row_remain, &col_remain, ask);
+        get_remaining(p, o, &row_remain, &col_remain);
 
         to_fill_r = p->constraints[i][o->i] - p->charge[i][o->i];
         to_fill_c = p->constraints[i + 2][o->j] - p->charge[i + 2][o->j];
@@ -1039,11 +999,27 @@ bool prune_feasible(Puzzle *p, Cell *c, CellCharge v)
             --to_fill_c;
         }
 
+        if (o->type == BOTTOM)
+        {
+            if ((v == POSITIVE && i == 0) || (v == NEGATIVE && i == 1))
+            {
+                --to_fill_c;
+            }
+        }
+
+        if (o->type == RIGHT)
+        {
+            if ((v == POSITIVE && i == 0) || (v == NEGATIVE && i == 1))
+            {
+                --to_fill_r;
+            }
+        }
+
         if (p->constraints[i][o->i] > 0)
         {
             consistent = consistent && 0 <= to_fill_r && to_fill_r <= row_remain;
         }
-        if (p->constraints[i][o->j] > 0)
+        if (p->constraints[i + 2][o->j] > 0)
         {
             consistent = consistent && 0 <= to_fill_c && to_fill_c <= col_remain;
         }

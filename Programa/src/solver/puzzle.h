@@ -14,7 +14,8 @@ typedef struct puzzle Puzzle;
 typedef enum
 {
     NONE,
-    SUFFICIENT
+    SUFFICIENT,
+    FEASIBLE
 }PruneStrategy;
 
 
