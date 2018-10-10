@@ -80,13 +80,12 @@ void set_cell_priority(Puzzle *p, Cell **cells, int n, int *priority[4])
 }
 
 
-Puzzle * puzzle_init(int r, int c, char **b, int *p[4], bool slow, PruneStrategy ps, Heuristics h)
+Puzzle * puzzle_init(int r, int c, char **b, int *p[4], bool slow, PruneStrategy ps)
 {
     Puzzle * puzzle = malloc(sizeof(Puzzle));
     puzzle->r = r;
     puzzle->c = c;
     puzzle->ps = ps;
-    puzzle->h = h;
     puzzle->slow = slow;
 
     // r rows where each row has c components
@@ -164,8 +163,6 @@ Puzzle * puzzle_init(int r, int c, char **b, int *p[4], bool slow, PruneStrategy
         puzzle->charge[2][i] = 0;
         puzzle->charge[3][i] = 0;
     }
-
-    apply_heuristics(puzzle);
 
     return puzzle;
 }
@@ -925,11 +922,11 @@ void get_remaining(Puzzle *p, Cell *c, CellCharge v, int *m, int *n)
 }
 
 
-void apply_heuristics(Puzzle *p)
+void apply_heuristics(Puzzle *p, Heuristics h)
 {
     int cnt = p->r * p->c / 2;
 
-    switch (p->h)
+    switch (h)
     {
         case MOST_CONSTRAINT:
             sort_cells(p->cells, 0, cnt, false);
