@@ -53,7 +53,7 @@ struct cellvalue
 
 struct cell
 {
-    int i, j, priority;
+    int i, j, priority, ind;
     CellOrient type;
     CellCharge value;
 

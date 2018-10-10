@@ -29,6 +29,7 @@ Cell * cell_init(int i, int j, CellOrient t)
     cell->type = t;
     cell->value = EMPTY;
     cell->assigned = false;
+    cell->ind = 0;
 
     cell->n_values = 3;
     cell->values = malloc(cell->n_values * sizeof(CellValue *));
@@ -115,6 +116,7 @@ Puzzle * puzzle_init(int r, int c, char **b, int *p[4], bool slow, PruneStrategy
             if (t == TOP || t == LEFT)
             {
                 puzzle->assigned[cnt] = false;
+                cell->ind = cnt;
                 puzzle->cells[cnt++] = cell;
             }
         }
@@ -855,11 +857,6 @@ void print_puzzle(Puzzle *p)
  */
 void get_remaining(Puzzle *p, Cell *c, CellCharge v, int *m, int *n)
 {
-    Cell *o = get_opposite(p, c);
-    // for simplicity assign the cell and its connecting cell and then unassign them at the end
-    c->assigned = true;
-    o->assigned = true;
-
     bool evaluate;
 
     Cell *d;
@@ -925,9 +922,6 @@ void get_remaining(Puzzle *p, Cell *c, CellCharge v, int *m, int *n)
             start = s + 1;
         }
     }
-
-    c->assigned = false;
-    o->assigned = false;
 }
 
 
@@ -957,6 +951,9 @@ bool prune_feasible(Puzzle *p, Cell *c, CellCharge v)
     bool consistent = true;
     Cell *o = get_opposite(p, c);
 
+    // assign the magnet for simplicity
+    assign_magnet(p, c->ind, c, v);
+
     // either row remain or column remain
     int row_remain = 0, col_remain = 0;
     int to_fill_r, to_fill_c;
@@ -972,36 +969,6 @@ bool prune_feasible(Puzzle *p, Cell *c, CellCharge v)
 
         to_fill_r = p->constraints[i][c->i] - p->charge[i][c->i];
         to_fill_c = p->constraints[i + 2][c->j] - p->charge[i + 2][c->j];
-
-        if (i == 0 && v == POSITIVE)
-        {
-            --to_fill_r;
-            --to_fill_c;
-        }
-        else if (i == 1 && v == NEGATIVE)
-        {
-            --to_fill_r;
-            --to_fill_c;
-        }
-
-        if (c->type == TOP)
-        {
-            // if it is a vertical magnet, then the column will get an extra opposite charge
-            // so if the opposite charge is negative and we are evaluating the negative row and columns
-            // to_fill_c should be 1 less
-            if ((v == POSITIVE && i == 1) || (v == NEGATIVE && i == 0))
-            {
-                --to_fill_c;
-            }
-        }
-
-        if (c->type == LEFT)
-        {
-            if ((v == POSITIVE && i == 1) || (v == NEGATIVE && i == 0))
-            {
-                --to_fill_r;
-            }
-        }
 
         if (p->constraints[i][c->i] > 0)
         {
@@ -1024,33 +991,6 @@ bool prune_feasible(Puzzle *p, Cell *c, CellCharge v)
         to_fill_r = p->constraints[i][o->i] - p->charge[i][o->i];
         to_fill_c = p->constraints[i + 2][o->j] - p->charge[i + 2][o->j];
 
-        if (i == 0 && v == NEGATIVE)
-        {
-            --to_fill_r;
-            --to_fill_c;
-        }
-        else if (i == 1 && v == POSITIVE)
-        {
-            --to_fill_r;
-            --to_fill_c;
-        }
-
-        if (o->type == BOTTOM)
-        {
-            if ((v == POSITIVE && i == 0) || (v == NEGATIVE && i == 1))
-            {
-                --to_fill_c;
-            }
-        }
-
-        if (o->type == RIGHT)
-        {
-            if ((v == POSITIVE && i == 0) || (v == NEGATIVE && i == 1))
-            {
-                --to_fill_r;
-            }
-        }
-
         if (p->constraints[i][o->i] > 0)
         {
             consistent = consistent && 0 <= to_fill_r && to_fill_r <= row_remain;
@@ -1060,6 +1000,8 @@ bool prune_feasible(Puzzle *p, Cell *c, CellCharge v)
             consistent = consistent && 0 <= to_fill_c && to_fill_c <= col_remain;
         }
     }
+
+    unassign_magnet(p, c->ind, c);
 
     return consistent;
 }
