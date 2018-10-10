@@ -1026,11 +1026,14 @@ bool prune_sufficient(Puzzle *p, Cell *c, CellCharge v)
 
     Cell *o = get_opposite(p, c);
 
+    // temporary assign magnet and unassign at the end
+    assign_magnet(p, c->ind, c, v);
+
     // each row has c components!
-    row_remain_0 = p->c - p->counter[0][c->i] - 1;
-    col_remain_0 = p->r - p->counter[1][c->j] - 1;
-    row_remain_1 = p->c - p->counter[0][o->i] - 1;
-    col_remain_1 = p->r - p->counter[1][o->j] - 1;
+    row_remain_0 = p->c - p->counter[0][c->i];
+    col_remain_0 = p->r - p->counter[1][c->j];
+    row_remain_1 = p->c - p->counter[0][o->i];
+    col_remain_1 = p->r - p->counter[1][o->j];
 
     // either row or column
     int line;
@@ -1049,16 +1052,6 @@ bool prune_sufficient(Puzzle *p, Cell *c, CellCharge v)
             continue;
 
         to_fill_0 = p->constraints[i][line] - p->charge[i][line];
-
-        if (i % 2 == 0 && v == POSITIVE)
-        {
-            --to_fill_0;
-        }
-        else if (i % 2 == 1 && v == NEGATIVE)
-        {
-            --to_fill_0;
-        }
-
         consistent = consistent && 0 <= to_fill_0 && to_fill_0 <= line_remain;
     }
 
@@ -1074,18 +1067,10 @@ bool prune_sufficient(Puzzle *p, Cell *c, CellCharge v)
             continue;
 
         to_fill_1 = p->constraints[i][line] - p->charge[i][line];
-
-        if (i % 2 == 0 && v == NEGATIVE)
-        {
-            --to_fill_1;
-        }
-        else if (i % 2 == 1 && v == POSITIVE)
-        {
-            --to_fill_1;
-        }
-
         consistent = consistent && 0 <= to_fill_1 && to_fill_1 <= line_remain;
     }
+
+    unassign_magnet(p, c->ind, c);
 
     return consistent;
 }
