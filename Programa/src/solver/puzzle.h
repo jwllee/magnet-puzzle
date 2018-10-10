@@ -108,5 +108,6 @@ void print_puzzle(Puzzle *p);
 void apply_heuristics(Puzzle *p);
 
 // prune strategies
+bool apply_prune_strategy(Puzzle *p, Cell *c, CellCharge v);
 bool prune_sufficient(Puzzle *p, Cell *c, CellCharge v);
 bool prune_feasible(Puzzle *p, Cell *c, CellCharge v);
