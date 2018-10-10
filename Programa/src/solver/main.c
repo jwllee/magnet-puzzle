@@ -66,14 +66,14 @@ int main(int argc, char *argv[])
 
     bool slow = false;
 
-    Puzzle *puzzle = puzzle_init(r, c, board, constraints, slow, SUFFICIENT);
+    Puzzle *puzzle = puzzle_init(r, c, board, constraints, slow, FEASIBLE);
     backtrack(puzzle);
 
     if (puzzle->slow)
     {
         sleep(5);
     }
-    sleep(1);
+    // sleep(100);
 
     if (assert_puzzle(puzzle))
         printf("Puzzle done!\n");
