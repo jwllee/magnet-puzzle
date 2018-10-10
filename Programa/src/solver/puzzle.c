@@ -364,8 +364,6 @@ bool check_neighbors(Puzzle *p, Cell *c, CellCharge v)
 
     int i = c->i, j = c->j;
     bool safe = true;
-
-    // left cell or it's already at the border
     // printf("Cell value: '%c'.\n", get_cell_charge(v));
     // if (j > 0)
     // {
@@ -374,6 +372,7 @@ bool check_neighbors(Puzzle *p, Cell *c, CellCharge v)
     //                                  get_cell_charge(v), v == p->board[i][j - 1]->value ? "true" : "false");
     // }
 
+    // left cell or it's already at the border
     safe = safe && (j <= 0 || p->board[i][j - 1]->value != v);
     // top cell or it's already at the border
     safe = safe && (i <= 0 || p->board[i - 1][j]->value != v);
@@ -844,23 +843,22 @@ void print_puzzle(Puzzle *p)
 
 /**
  * Count the remaining specified charges on the cell's row and column, assuming
- * that the cell is going to be assigned with a specified charge.
+ * that the cell is going to be assigned.
  *
- * @param p
- * @param c
- * @param v
- * @param vertical
- * @param m
- * @param n
- * @param ask
- * @return
+ * @param p: puzzle
+ * @param c: cell to be assigned
+ * @param v: cell charge to check
+ * @param m: remaining row integer pointer
+ * @param n: remaining col integer pointer
  */
-void get_remaining(Puzzle *p, Cell *c, int *m, int *n)
+void get_remaining(Puzzle *p, Cell *c, CellCharge v, int *m, int *n)
 {
     Cell *o = get_opposite(p, c);
     // for simplicity assign the cell and its connecting cell and then unassign them at the end
     c->assigned = true;
     o->assigned = true;
+
+    bool evaluate;
 
     Cell *d;
     int start = 0, end = 0, interval = 0, space = 0;
@@ -875,9 +873,15 @@ void get_remaining(Puzzle *p, Cell *c, int *m, int *n)
         // need to consider the last column if this is the last column and it is unassigned
         end = !d->assigned && s == p->c - 1 ? s + 1 : s;
 
+        // evaluate if:
+        // - d is assigned and therefore cannot hold charge v
+        // - we are at the last cell of the row
+        // - d cannot hold charge v due to its neighbor charges
+        evaluate = d->assigned || s == p->c - 1 || !check_neighbors(p, d, v);
+
         // evaluate the interval between start and d
         // we have to evaluate the interval if d is assigned or if this is the last column
-        if (d->assigned || s == p->c - 1)
+        if (evaluate)
         {
             if (end > start)
             {
@@ -901,7 +905,13 @@ void get_remaining(Puzzle *p, Cell *c, int *m, int *n)
         d = p->board[s][c->j];
         end = !d->assigned && s == p->r - 1 ? s + 1 : s;
 
-        if (d->assigned || s == p->r - 1)
+        // evaluate if:
+        // - d is assigned and therefore cannot hold charge v
+        // - we are at the last cell of the column
+        // - d cannot hold charge v due to its neighbor charges
+        evaluate = d->assigned || s == p->c - 1 || !check_neighbors(p, d, v);
+
+        if (evaluate)
         {
             if (end > start)
             {
@@ -927,23 +937,25 @@ bool prune_feasible(Puzzle *p, Cell *c, CellCharge v)
     // either row remain or column remain
     int row_remain = 0, col_remain = 0;
     int to_fill_r, to_fill_c;
+    CellCharge charge;
 
     for (int i = 0; i < 2; ++i)
     {
         if (!consistent)
             break;
 
-        get_remaining(p, c, &row_remain, &col_remain);
+        charge = i == 0 ? POSITIVE : NEGATIVE;
+        get_remaining(p, c, charge, &row_remain, &col_remain);
 
         to_fill_r = p->constraints[i][c->i] - p->charge[i][c->i];
         to_fill_c = p->constraints[i + 2][c->j] - p->charge[i + 2][c->j];
 
-        if (i % 2 == 0 && v == POSITIVE)
+        if (i == 0 && v == POSITIVE)
         {
             --to_fill_r;
             --to_fill_c;
         }
-        else if (i % 2 == 1 && v == NEGATIVE)
+        else if (i == 1 && v == NEGATIVE)
         {
             --to_fill_r;
             --to_fill_c;
@@ -983,17 +995,18 @@ bool prune_feasible(Puzzle *p, Cell *c, CellCharge v)
         if (!consistent)
             break;
 
-        get_remaining(p, o, &row_remain, &col_remain);
+        charge = i == 0 ? POSITIVE : NEGATIVE;
+        get_remaining(p, o, charge, &row_remain, &col_remain);
 
         to_fill_r = p->constraints[i][o->i] - p->charge[i][o->i];
         to_fill_c = p->constraints[i + 2][o->j] - p->charge[i + 2][o->j];
 
-        if (i % 2 == 0 && v == NEGATIVE)
+        if (i == 0 && v == NEGATIVE)
         {
             --to_fill_r;
             --to_fill_c;
         }
-        else if (i % 2 == 1 && v == POSITIVE)
+        else if (i == 1 && v == POSITIVE)
         {
             --to_fill_r;
             --to_fill_c;
