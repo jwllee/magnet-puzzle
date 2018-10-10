@@ -273,7 +273,7 @@ void undraw_cell(Cell *k, bool slow)
 }
 
 
-void assign_cell(Puzzle *p, int i, Cell *k, CellCharge v)
+void assign_magnet(Puzzle *p, int i, Cell *k, CellCharge v)
 {
     ++p->n_assigned;
     p->assigned[i] = true;
@@ -317,7 +317,7 @@ void assign_cell(Puzzle *p, int i, Cell *k, CellCharge v)
 }
 
 
-void unassign_cell(Puzzle *p, int i, Cell *k)
+void unassign_magnet(Puzzle *p, int i, Cell *k)
 {
     --p->n_assigned;
     p->assigned[i] = false;
@@ -692,7 +692,7 @@ bool r_backtrack(Puzzle *p, int i)
         if (!is_safe(p, cell, charge))
             continue;
 
-        assign_cell(p, i, cell, charge);
+        assign_magnet(p, i, cell, charge);
 
         // printf("Assigned cell (%d, %d) with value '%c'.\n", cell->i, cell->j, get_cell_charge(val));
         // print_puzzle(p);
@@ -701,7 +701,7 @@ bool r_backtrack(Puzzle *p, int i)
             return true;
 
         // printf("Unassigned cell (%d, %d) with value '%c'.\n", cell->i, cell->j, get_cell_charge(val));
-        unassign_cell(p, i, cell);
+        unassign_magnet(p, i, cell);
     }
 
     return false;

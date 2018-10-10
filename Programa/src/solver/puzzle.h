@@ -85,8 +85,8 @@ void puzzle_destroy(Puzzle *p);
 
 char cval_to_char(CellCharge v);
 Cell * get_opposite(Puzzle *p, Cell *c);
-void assign_cell(Puzzle *p, int i, Cell *k, CellCharge v);
-void unassign_cell(Puzzle *p, int i, Cell *k);
+void assign_magnet(Puzzle *p, int i, Cell *k, CellCharge v);
+void unassign_magnet(Puzzle *p, int i, Cell *k);
 
 bool is_done(Puzzle *p);
 Cell * get_next_cell(Puzzle *p, int *i);

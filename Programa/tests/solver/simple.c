@@ -66,12 +66,12 @@ int main(int argc, char *argv[])
 
    Puzzle *puzzle = puzzle_init(r, c, board, constraints, false, FEASIBLE);
 
-   // assign_cell(puzzle, puzzle->board[0][0], POSITIVE);
-   // assign_cell(puzzle, puzzle->board[1][0], NEGATIVE);
-   // assign_cell(puzzle, puzzle->board[0][2], POSITIVE);
+   // assign_magnet(puzzle, puzzle->board[0][0], POSITIVE);
+   // assign_magnet(puzzle, puzzle->board[1][0], NEGATIVE);
+   // assign_magnet(puzzle, puzzle->board[0][2], POSITIVE);
    // print_puzzle(puzzle);
    //
-   // unassign_cell(puzzle, puzzle->board[0][0]);
+   // unassign_magnet(puzzle, puzzle->board[0][0]);
    print_puzzle(puzzle);
 
    printf("Solving puzzle...\n");
