@@ -83,7 +83,6 @@ void cvalue_destroy(CellValue *v);
 void cell_destroy(Cell *c);
 void puzzle_destroy(Puzzle *p);
 
-char cval_to_char(CellCharge v);
 Cell * get_opposite(Puzzle *p, Cell *c);
 void assign_magnet(Puzzle *p, int i, Cell *k, CellCharge v);
 void unassign_magnet(Puzzle *p, int i, Cell *k);
