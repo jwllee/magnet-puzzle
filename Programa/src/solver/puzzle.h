@@ -13,10 +13,18 @@ typedef struct puzzle Puzzle;
 
 typedef enum
 {
+    NO_HEURISTICS,
+    MOST_CONSTRAINT,
+    LEAST_CONSTRAINT
+} Heuristics;
+
+
+typedef enum
+{
     NONE,
     SUFFICIENT,
     FEASIBLE
-}PruneStrategy;
+} PruneStrategy;
 
 
 typedef enum
@@ -59,6 +67,7 @@ struct puzzle
 {
     bool slow;
     PruneStrategy ps;
+    Heuristics h;
     // row (+, -), col (+, -)
     int *constraints[4];
 
@@ -77,7 +86,7 @@ struct puzzle
 
 CellValue * cvalue_init(CellCharge v);
 Cell * cell_init(int i, int j, CellOrient t);
-Puzzle * puzzle_init(int r, int c, char **b, int *p[4], bool slow, PruneStrategy ps);
+Puzzle * puzzle_init(int r, int c, char **b, int *p[4], bool slow, PruneStrategy ps, Heuristics h);
 
 void cvalue_destroy(CellValue *v);
 void cell_destroy(Cell *c);
@@ -94,6 +103,9 @@ bool backtrack(Puzzle *p);
 bool assert_puzzle(Puzzle *p);
 void draw_puzzle(Puzzle *p);
 void print_puzzle(Puzzle *p);
+
+// heuristics
+void apply_heuristics(Puzzle *p);
 
 // prune strategies
 bool prune_sufficient(Puzzle *p, Cell *c, CellCharge v);

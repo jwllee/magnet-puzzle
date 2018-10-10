@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
 
     bool slow = false;
 
-    Puzzle *puzzle = puzzle_init(r, c, board, constraints, slow, FEASIBLE);
+    Puzzle *puzzle = puzzle_init(r, c, board, constraints, slow, FEASIBLE, NO_HEURISTICS);
     backtrack(puzzle);
 
     if (puzzle->slow)
