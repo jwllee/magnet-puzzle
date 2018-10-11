@@ -13,9 +13,18 @@ typedef struct puzzle Puzzle;
 
 typedef enum
 {
+    NO_HEURISTICS,
+    MOST_CONSTRAINT,
+    LEAST_CONSTRAINT
+} Heuristics;
+
+
+typedef enum
+{
     NONE,
-    SUFFICIENT
-}PruneStrategy;
+    SUFFICIENT,
+    FEASIBLE
+} PruneStrategy;
 
 
 typedef enum
@@ -44,12 +53,13 @@ struct cellvalue
 
 struct cell
 {
-    int i, j, priority;
+    int i, j, priority, ind;
     CellOrient type;
     CellCharge value;
 
     int n_values;
     CellValue **values;
+    bool assigned;
 };
 
 
@@ -85,10 +95,9 @@ void cvalue_destroy(CellValue *v);
 void cell_destroy(Cell *c);
 void puzzle_destroy(Puzzle *p);
 
-char cval_to_char(CellCharge v);
 Cell * get_opposite(Puzzle *p, Cell *c);
-void assign_cell(Puzzle *p, int i, Cell *k, CellCharge v);
-void unassign_cell(Puzzle *p, int i, Cell *k);
+void assign_magnet(Puzzle *p, int i, Cell *k, CellCharge v);
+void unassign_magnet(Puzzle *p, int i, Cell *k);
 
 bool is_done(Puzzle *p);
 Cell * get_next_cell(Puzzle *p, int *i);
@@ -98,5 +107,10 @@ bool assert_puzzle(Puzzle *p);
 void draw_puzzle(Puzzle *p);
 void print_puzzle(Puzzle *p);
 
+// heuristics
+void apply_heuristics(Puzzle *p, Heuristics h);
+
 // prune strategies
+bool apply_prune_strategy(Puzzle *p, Cell *c, CellCharge v);
 bool prune_sufficient(Puzzle *p, Cell *c, CellCharge v);
+bool prune_feasible(Puzzle *p, Cell *c, CellCharge v);

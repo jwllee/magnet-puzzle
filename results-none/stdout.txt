@@ -1,18 +1,70 @@
+Filename: ./Programa/tests/test_00.txt
+Board dimension: 2 x 3 = 6
+Total constraint: 7
+Constraint row: 5
+Constraint col: 2
+Constraint +: 4
+Constraint -: 3
 Number of assignment: 5
 Number of unassignment: 2
 Puzzle done!
+Filename: ./Programa/tests/test_01.txt
+Board dimension: 5 x 6 = 30
+Total constraint: 17
+Constraint row: 7
+Constraint col: 10
+Constraint +: 11
+Constraint -: 6
 Number of assignment: 340
 Number of unassignment: 325
 Puzzle done!
+Filename: ./Programa/tests/test_02.txt
+Board dimension: 6 x 5 = 30
+Total constraint: 13
+Constraint row: 8
+Constraint col: 5
+Constraint +: 8
+Constraint -: 5
 Number of assignment: 448
 Number of unassignment: 433
 Puzzle done!
+Filename: ./Programa/tests/test_03.txt
+Board dimension: 10 x 3 = 30
+Total constraint: 18
+Constraint row: 9
+Constraint col: 9
+Constraint +: 12
+Constraint -: 6
 Number of assignment: 19
 Number of unassignment: 4
 Puzzle done!
+Filename: ./Programa/tests/test_04.txt
+Board dimension: 8 x 7 = 56
+Total constraint: 26
+Constraint row: 15
+Constraint col: 11
+Constraint +: 14
+Constraint -: 12
 Number of assignment: 1118936
 Number of unassignment: 1118936
 Puzzle not solved.
+Filename: ./Programa/tests/test_05.txt
+Board dimension: 10 x 13 = 130
+Total constraint: 14
+Constraint row: 6
+Constraint col: 8
+Constraint +: 9
+Constraint -: 5
 Number of assignment: 79
 Number of unassignment: 14
+Puzzle done!
+Filename: ./Programa/tests/test_06.txt
+Board dimension: 12 x 10 = 120
+Total constraint: 33
+Constraint row: 20
+Constraint col: 13
+Constraint +: 19
+Constraint -: 14
+Number of assignment: 558483250
+Number of unassignment: 558483190
 Puzzle done!
