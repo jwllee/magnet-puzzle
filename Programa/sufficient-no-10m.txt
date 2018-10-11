@@ -1,0 +1,160 @@
+o_test_01
+Sufficient prune.
+No heuristics.
+Filename: ./tests/deprecated/test_01.txt
+Board dimension: 5 x 6 = 30
+Total constraint: 17
+Constraint row: 7
+Constraint col: 10
+Constraint +: 11
+Constraint -: 6
+Number of assignment: 1092
+Number of unassignment: 1077
+time: 0:00.00
+
+o_test_02
+Sufficient prune.
+No heuristics.
+Filename: ./tests/deprecated/test_02.txt
+Board dimension: 6 x 5 = 30
+Total constraint: 13
+Constraint row: 8
+Constraint col: 5
+Constraint +: 8
+Constraint -: 5
+Number of assignment: 116
+Number of unassignment: 101
+time: 0:00.00
+
+o_test_03
+Sufficient prune.
+No heuristics.
+Filename: ./tests/deprecated/test_03.txt
+Board dimension: 10 x 3 = 30
+Total constraint: 18
+Constraint row: 9
+Constraint col: 9
+Constraint +: 12
+Constraint -: 6
+Number of assignment: 517
+Number of unassignment: 502
+time: 0:00.00
+
+o_test_05
+
+o_test_06
+Sufficient prune.
+No heuristics.
+Filename: ./tests/deprecated/test_06.txt
+Board dimension: 12 x 10 = 120
+Total constraint: 33
+Constraint row: 20
+Constraint col: 13
+Constraint +: 19
+Constraint -: 14
+Number of assignment: 600
+Number of unassignment: 540
+time: 0:00.00
+
+test_01
+Sufficient prune.
+No heuristics.
+Filename: ./tests/test_01.txt
+Board dimension: 5 x 6 = 30
+Total constraint: 17
+Constraint row: 7
+Constraint col: 10
+Constraint +: 11
+Constraint -: 6
+Number of assignment: 1092
+Number of unassignment: 1077
+time: 0:00.00
+
+test_02
+Sufficient prune.
+No heuristics.
+Filename: ./tests/test_02.txt
+Board dimension: 4 x 5 = 20
+Total constraint: 10
+Constraint row: 4
+Constraint col: 6
+Constraint +: 7
+Constraint -: 3
+Number of assignment: 196
+Number of unassignment: 186
+time: 0:00.00
+
+test_03
+Sufficient prune.
+No heuristics.
+Filename: ./tests/test_03.txt
+Board dimension: 5 x 6 = 30
+Total constraint: 12
+Constraint row: 8
+Constraint col: 4
+Constraint +: 9
+Constraint -: 3
+Number of assignment: 2119
+Number of unassignment: 2104
+time: 0:00.00
+
+test_04
+Sufficient prune.
+No heuristics.
+Filename: ./tests/test_04.txt
+Board dimension: 7 x 6 = 42
+Total constraint: 23
+Constraint row: 6
+Constraint col: 17
+Constraint +: 15
+Constraint -: 8
+Number of assignment: 3446
+Number of unassignment: 3425
+time: 0:00.00
+
+test_05
+Sufficient prune.
+No heuristics.
+Filename: ./tests/test_05.txt
+Board dimension: 7 x 8 = 56
+Total constraint: 38
+Constraint row: 16
+Constraint col: 22
+Constraint +: 19
+Constraint -: 19
+Number of assignment: 9305
+Number of unassignment: 9277
+time: 0:00.00
+
+test_06
+Sufficient prune.
+No heuristics.
+Filename: ./tests/Lunatic/test_06.txt
+Board dimension: 12 x 10 = 120
+Total constraint: 33
+Constraint row: 20
+Constraint col: 13
+Constraint +: 19
+Constraint -: 14
+Number of assignment: 600
+Number of unassignment: 540
+time: 0:00.00
+
+test_07
+Sufficient prune.
+No heuristics.
+Filename: ./tests/Lunatic/test_07.txt
+Board dimension: 10 x 9 = 90
+Total constraint: 44
+Constraint row: 18
+Constraint col: 26
+Constraint +: 25
+Constraint -: 19
+Number of assignment: 50294163
+Number of unassignment: 50294118
+time: 0:07.43
+
+test_08
+
+test_09
+
