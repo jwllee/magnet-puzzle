@@ -87,15 +87,15 @@ int main(int argc, char *argv[])
 
     bool slow = false;
 
-    Puzzle *puzzle = puzzle_init(r, c, board, constraints, slow, FEASIBLE);
-    apply_heuristics(puzzle, NO_HEURISTICS);
+    Puzzle *puzzle = puzzle_init(r, c, board, constraints, slow, NONE);
+    apply_heuristics(puzzle, MOST_CONSTRAINT);
     backtrack(puzzle);
 
     if (puzzle->slow)
     {
         sleep(5);
     }
-    sleep(1);
+    // sleep(1);
 
     printf("Filename: %s\n", argv[1]);
     printf("Board dimension: %d x %d = %d\n", r, c, r * c);
@@ -107,10 +107,10 @@ int main(int argc, char *argv[])
     printf("Number of assignment: %d\n", puzzle->n_set);
     printf("Number of unassignment: %d\n", puzzle->n_unset);
 
-    if (assert_puzzle(puzzle))
-        printf("Puzzle done!\n");
-    else
-        printf("Puzzle not solved.\n");
+    // if (assert_puzzle(puzzle))
+    //     printf("Puzzle done!\n");
+    // else
+    //     printf("Puzzle not solved.\n");
 
 	// Cerramos la interfaz (no eliminar esta linea)
 	watcher_close();

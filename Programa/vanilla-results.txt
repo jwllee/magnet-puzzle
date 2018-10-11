@@ -1,0 +1,108 @@
+o_test_01
+Filename: ./tests/deprecated/test_01.txt
+Board dimension: 5 x 6 = 30
+Total constraint: 17
+Constraint row: 7
+Constraint col: 10
+Constraint +: 11
+Constraint -: 6
+Number of assignment: 823
+Number of unassignment: 808
+time: 0:00.00
+
+o_test_02
+Filename: ./tests/deprecated/test_02.txt
+Board dimension: 6 x 5 = 30
+Total constraint: 13
+Constraint row: 8
+Constraint col: 5
+Constraint +: 8
+Constraint -: 5
+Number of assignment: 56
+Number of unassignment: 41
+time: 0:00.00
+
+o_test_03
+Filename: ./tests/deprecated/test_03.txt
+Board dimension: 10 x 3 = 30
+Total constraint: 18
+Constraint row: 9
+Constraint col: 9
+Constraint +: 12
+Constraint -: 6
+Number of assignment: 284
+Number of unassignment: 269
+time: 0:00.00
+
+o_test_05
+
+o_test_06
+
+test_01
+Filename: ./tests/test_01.txt
+Board dimension: 5 x 6 = 30
+Total constraint: 17
+Constraint row: 7
+Constraint col: 10
+Constraint +: 11
+Constraint -: 6
+Number of assignment: 823
+Number of unassignment: 808
+time: 0:00.00
+
+test_02
+Filename: ./tests/test_02.txt
+Board dimension: 4 x 5 = 20
+Total constraint: 10
+Constraint row: 4
+Constraint col: 6
+Constraint +: 7
+Constraint -: 3
+Number of assignment: 139
+Number of unassignment: 129
+time: 0:00.00
+
+test_03
+Filename: ./tests/test_03.txt
+Board dimension: 5 x 6 = 30
+Total constraint: 12
+Constraint row: 8
+Constraint col: 4
+Constraint +: 9
+Constraint -: 3
+Number of assignment: 1893
+Number of unassignment: 1878
+time: 0:00.00
+
+test_04
+Filename: ./tests/test_04.txt
+Board dimension: 7 x 6 = 42
+Total constraint: 23
+Constraint row: 6
+Constraint col: 17
+Constraint +: 15
+Constraint -: 8
+Number of assignment: 41536
+Number of unassignment: 41515
+time: 0:00.01
+
+test_05
+Filename: ./tests/test_05.txt
+Board dimension: 7 x 8 = 56
+Total constraint: 38
+Constraint row: 16
+Constraint col: 22
+Constraint +: 19
+Constraint -: 19
+Number of assignment: 42559
+Number of unassignment: 42531
+time: 0:00.01
+
+test_06
+
+test_07
+
+test_08
+
+test_09
+
