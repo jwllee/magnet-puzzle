@@ -4,12 +4,14 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <unistd.h>
+#include <string.h>
+
 
 int main(int argc, char *argv[])
 {
-	if (argc != 2)
+	if (argc != 4)
 	{
-		printf("Modo de uso: %s [test.txt]\n", argv[0]);
+		printf("Modo de uso: %s [test.txt] [prune] [heuristics]\n", argv[0]);
 		return 0;
 	}
 
@@ -87,8 +89,50 @@ int main(int argc, char *argv[])
 
     bool slow = false;
 
-    Puzzle *puzzle = puzzle_init(r, c, board, constraints, slow, NONE);
-    apply_heuristics(puzzle, MOST_CONSTRAINT);
+//    Puzzle *puzzle = puzzle_init(r, c, board, constraints, slow, FEASIBLE);
+//    apply_heuristics(puzzle, MOST_CONSTRAINT);
+    Puzzle *puzzle;
+    int prune = atoi(argv[2]);
+    int heuristics = atoi(argv[3]);
+
+    switch (prune)
+    {
+      case NONE:
+          printf("No prune.\n");
+          puzzle = puzzle_init(r, c, board, constraints, slow, NONE);
+          break;
+      case FEASIBLE:
+          printf("Feasible prune.\n");
+          puzzle = puzzle_init(r, c, board, constraints, slow, FEASIBLE);
+          break;
+      case SUFFICIENT:
+          printf("Sufficient prune.\n");
+          puzzle = puzzle_init(r, c, board, constraints, slow, SUFFICIENT);
+          break;
+      default:
+          printf("Do not recognize prune strategy: %d\n", prune);
+          exit(1);
+    }
+
+    switch (heuristics)
+    {
+      case NO_HEURISTICS:
+          printf("No heuristics.\n");
+          apply_heuristics(puzzle, NO_HEURISTICS);
+          break;
+      case MOST_CONSTRAINT:
+          printf("Most constraint heuristics.\n");
+          apply_heuristics(puzzle, MOST_CONSTRAINT);
+          break;
+      case LEAST_CONSTRAINT:
+          printf("Least constraint heuristics.\n");
+          apply_heuristics(puzzle, LEAST_CONSTRAINT);
+          break;
+      default:
+          printf("Do not recognize heuristics: %d\n", heuristics);
+          exit(1);
+    }
+
     backtrack(puzzle);
 
     if (puzzle->slow)
