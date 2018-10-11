@@ -56,8 +56,8 @@ if __name__ == '__main__':
 
         with open(f, 'r', encoding = "ISO-8859-1") as file:
             for line in file:
-                if '_test_' in line:
-                    exp = line.strip()
+                if 'test_' in line:
+                    exp = line.split('/')[-1].replace('.txt', '').strip()
                     # reset variables
                     dim, time, unassign = -1, -1, -1
                 elif 'Board dimension' in line:
