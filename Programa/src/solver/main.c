@@ -60,8 +60,6 @@ int main(int argc, char *argv[])
             fscanf(data, " %c ", &cell);
             board[i][j] = cell;
         }
-
-        // printf("row %d: %s\n", i, board[i]);
     }
 
     bool slow = false;
@@ -70,16 +68,17 @@ int main(int argc, char *argv[])
     apply_heuristics(puzzle, NO_HEURISTICS);
     backtrack(puzzle);
 
-    if (puzzle->slow)
-    {
-        sleep(5);
-    }
-    sleep(1);
+//     if (puzzle->slow)
+//     {
+//         sleep(5);
+//     }
+//     sleep(1);
 
-    if (assert_puzzle(puzzle))
-        printf("Puzzle done!\n");
-    else
-        printf("Puzzle not solved.\n");
+    // Uncomment below to check puzzle correctness
+//     if (assert_puzzle(puzzle))
+//         printf("Puzzle done!\n");
+//     else
+//         printf("Puzzle not solved.\n");
 
 	// Cerramos la interfaz (no eliminar esta linea)
 	watcher_close();
